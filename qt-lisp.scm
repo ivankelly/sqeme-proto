@@ -1,5 +1,5 @@
 (c-declare #<<END
-#include "qt-cpp.cpp"
+#include "qt-cpp.moc.cpp"
 END
 )
 
@@ -21,6 +21,17 @@ END
 ___result = (char *)q_connect((QObject*)___arg1, ___arg2,
                               (QObject*)___arg3, ___arg4);
 "))
+
+
+
+;; SlotProxy
+
+(c-define-type slot-proxy "SlotProxy")
+(c-define-type slot-proxy* (pointer slot-proxy))
+
+(define slot-proxy-new
+  (c-lambda ((pointer void)) slot-proxy*
+            "___result_voidstar = SlotProxy_new((SlotProxy::function)___arg1"))
 
 
 

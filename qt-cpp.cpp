@@ -41,6 +41,34 @@ const char *q_connect(QObject *source, const char *signal,
 
 
 
+// SlotProxy
+
+class SlotProxy : QObject {
+  Q_OBJECT
+public:
+  typedef function void (*void)();
+  SlotProxy(function target);
+public slots:
+  void work();
+private:
+  function target;
+}
+
+SlotProxy::SlotProxy(SlotProxy::function target) : QObject() {
+  this->target = target;
+}
+
+void SlotProxy::work() {
+  (*this->work)();
+}
+
+___INLINE
+SlotProxy* SlotProxy_new(target_t target) {
+  return new SlotProxy(target);
+}
+
+
+
 // QApplication
 
 // FIXME Research gambit's marshalling.
@@ -62,6 +90,10 @@ int QApplication_exec(QApplication* app) {
 ___INLINE
 QLineEdit* QLineEdit_new() {
   return new QLineEdit();
+}
+
+QString QLineEdit_text(QLineEdit* instance) {
+  return instance->text();
 }
 
 
@@ -86,6 +118,15 @@ void QToolBar_addWidget(QToolBar* instance, QLineEdit* widget) {
 ___INLINE
 QString* QString_new(char* str) {
   return new QString(str);
+}
+
+int QString_indexOf(QString *instance, QString* str) {
+  return instance->indexOf((const QString&)str);
+}
+
+QString* QString_prepend(QString* instance, const char *str) {
+  instance->prepend(str);
+  return instance;
 }
 
 
