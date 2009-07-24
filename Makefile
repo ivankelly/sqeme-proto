@@ -7,7 +7,7 @@ build:
 	$(CXX) -g -c -I/usr/include/qt4 qt-lisp.c
 	$(CXX) -g -c qt-hello.c
 	$(CXX) -g -c qt-hello_.c
-	$(CXX) -lutil -lQtCore -lQtGui -lQtWebKit *.o /usr/local/lib/libgambc.a -o qt-hello
+	$(CXX) -lutil -lgambc -lQtCore -lQtGui -lQtWebKit *.o -o qt-hello
 
 clean:
 	rm -f qt-proxy.moc qt-hello.c qt-hello_.c qt-lisp.c *.o qt-hello
