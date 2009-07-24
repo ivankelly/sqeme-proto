@@ -1,6 +1,6 @@
-(c-declare #<<END
-#include "qt-cpp.moc.cpp"
-END
+(c-declare #<<end
+#include "qt-wrappers.cpp"
+end
 )
 
 ;; QObject
@@ -31,7 +31,7 @@ ___result = (char *)q_connect((QObject*)___arg1, ___arg2,
 
 (define slot-proxy-new
   (c-lambda ((pointer void)) slot-proxy*
-            "___result_voidstar = SlotProxy_new((SlotProxy::function)___arg1"))
+            "___result_voidstar = SlotProxy_new((SlotProxy::function)___arg1);"))
 
 
 
@@ -55,6 +55,32 @@ ___result = (char *)q_connect((QObject*)___arg1, ___arg2,
 
 
 
+;; QString
+
+(c-define-type q-string "QString")
+(c-define-type q-string* (pointer q-string))
+
+(define q-string-new
+  (c-lambda (char-string) q-string* "QString_new"))
+
+(define q-string-index-of
+  (c-lambda (q-string* q-string*) int "QString_indexOf"))
+
+(define q-string-prepend
+  (c-lambda (q-string* nonnull-char-string) q-string* "QString_prepend"))
+
+
+
+;; QUrl
+
+(c-define-type q-url "QUrl")
+(c-define-type q-url* (pointer q-url))
+
+(define q-url-new
+  (c-lambda (q-string) q-url* "QUrl_new"))
+
+
+
 ;; QLineEdit
 
 (c-define-type q-line-edit "QLineEdit")
@@ -62,6 +88,9 @@ ___result = (char *)q_connect((QObject*)___arg1, ___arg2,
 
 (define q-line-edit-new
   (c-lambda () q-line-edit* "QLineEdit_new"))
+
+(define q-line-edit-text
+  (c-lambda (q-line-edit*) q-string "QLineEdit_text"))
 
 
 
@@ -75,26 +104,6 @@ ___result = (char *)q_connect((QObject*)___arg1, ___arg2,
 
 (define q-tool-bar-add-widget
   (c-lambda (q-tool-bar* q-line-edit*) void "QToolBar_addWidget"))
-
-
-
-;; QString
-
-(c-define-type q-string "QString")
-(c-define-type q-string* (pointer q-string))
-
-(define q-string-new
-  (c-lambda (char-string) q-string* "QString_new"))
-
-
-
-;; QUrl
-
-(c-define-type q-url "QUrl")
-(c-define-type q-url* (pointer q-url))
-
-(define q-url-new
-  (c-lambda (q-string) q-url* "QUrl_new"))
 
 
 
