@@ -1,3 +1,4 @@
+#include <QtCore/QObject>
 #include <QtGui/QApplication>
 #include <QtGui/QWidget>
 #include <QtGui/QLineEdit>
@@ -6,6 +7,7 @@
 #include <QtCore/QUrl>
 #include <QtWebKit/QWebView>
 #include <QtGui/QMainWindow>
+#include "qt-proxy.h"
 
 #define ___INLINE inline
 
@@ -13,7 +15,16 @@
 extern "C" {
 #endif
 
-// Utilities
+// SlotProxy
+
+___INLINE
+SlotProxy* SlotProxy_new(SlotProxy::function target) {
+  return new SlotProxy(target);
+}
+
+
+
+// Connect
 
 ___INLINE
 const char *q_connect(QObject *source, const char *signal,
@@ -37,34 +48,6 @@ const char *q_connect(QObject *source, const char *signal,
 
   free(psignal);
   free(pslot);
-}
-
-
-
-// SlotProxy
-
-class SlotProxy : QObject {
-  Q_OBJECT
-public:
-  typedef function void (*void)();
-  SlotProxy(function target);
-public slots:
-  void work();
-private:
-  function target;
-}
-
-SlotProxy::SlotProxy(SlotProxy::function target) : QObject() {
-  this->target = target;
-}
-
-void SlotProxy::work() {
-  (*this->work)();
-}
-
-___INLINE
-SlotProxy* SlotProxy_new(target_t target) {
-  return new SlotProxy(target);
 }
 
 
@@ -180,3 +163,4 @@ void QMainWindow_addToolBar(QMainWindow* instance, QToolBar* toolbar) {
 #ifdef __cplusplus
 }
 #endif
+
