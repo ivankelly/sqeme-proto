@@ -30,7 +30,7 @@ ___result = (char *)q_connect((QObject*)___arg1, ___arg2,
 (c-define-type slot-proxy* (pointer slot-proxy))
 
 (define slot-proxy-new
-  (c-lambda ((pointer void)) slot-proxy*
+  (c-lambda ((function () void)) slot-proxy*
             "___result_voidstar = SlotProxy_new((SlotProxy::function)___arg1);"))
 
 

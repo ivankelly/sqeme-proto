@@ -1,3 +1,4 @@
+(define app (q-application-new (length (command-line)) (command-line)))
 (define view (q-web-view-new))
 (define urlbar (q-line-edit-new))
 
@@ -10,8 +11,7 @@
 (let ((proxy (slot-proxy-new load-slot)))
   (q-connect urlbar "returnPressed" proxy "work"))
 
-(let ((app (q-application-new (length (command-line)) (command-line)))
-      (window (q-main-window-new))
+(let ((window (q-main-window-new))
       (toolbar (q-tool-bar-new)))
   (q-tool-bar-add-widget toolbar urlbar)
   (q-main-window-add-tool-bar window toolbar)
