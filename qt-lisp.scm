@@ -59,9 +59,10 @@ end
 
 (define (lambda-recall name)
   (define (iter lst)
-    (if (string=? (caar lambda-memory) name)
+    ; FIXME Predicate is Gambit extension.
+    (if (string=? (caar lambda-memory) name) 
         (cdar lambda-memory)
-        (iter name (cdr lambda-memory))))
+        (iter name (cdr lst))))
   (iter lambda-memory))
 
 (c-define (eval-scheme code) (nonnull-char-string) void
