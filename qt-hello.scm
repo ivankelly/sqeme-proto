@@ -1,6 +1,6 @@
 
 (define (load-slot)
-(q-connect urlbar "returnPressed" #f load-slot)
+  (q-connect urlbar "returnPressed" #f load-slot))
 
 (let ((app (q-application-new (length (command-line)) (command-line)))
       (view (q-web-view-new))
