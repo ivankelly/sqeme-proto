@@ -4,25 +4,29 @@ end
 )
 
 (c-define-type slot-proxy "SlotProxy")
-(c-define-type slot-proxy* (pointer slot-proxy (q-object*)))
-h
+(c-define-type slot-proxy* (pointer slot-proxy slot-proxy*))
+
 (c-define-type q-application "QApplication")
-(c-define-type q-application* (pointer q-application (q-object*)))
+(c-define-type q-application* (pointer q-application q-application*))
 
 (c-define-type q-main-window "QMainWindow")
-(c-define-type q-main-window* (pointer q-main-window (q-widget* q-object*)))
+(c-define-type q-main-window* (pointer q-main-window q-main-window*))
 
 (c-define-type q-tool-bar "QToolBar")
-(c-define-type q-tool-bar* (pointer q-tool-bar (q-widget* q-object*)))
+(c-define-type q-tool-bar* (pointer q-tool-bar q-tool-bar*))
 
 (c-define-type q-line-edit "QLineEdit")
-(c-define-type q-line-edit* (pointer q-line-edit (q-widget* q-object*)))
+(c-define-type q-line-edit* (pointer q-line-edit q-line-edit*))
 
 (c-define-type q-widget "QWidget")
-(c-define-type q-widget* (pointer q-widget (q-widget* q-object*)))
+(c-define-type q-widget*
+  (pointer q-widget (q-widget* q-line-edit* q-tool-bar* q-main-window* 
+                     q-application* slot-proxy*)))
 
 (c-define-type q-object "QObject")
-(c-define-type q-object* (pointer q-object (q-object*)))
+(c-define-type q-object*
+  (pointer q-object (q-object* q-widget* q-line-edit* q-tool-bar*
+                     q-main-window* q-application* slot-proxy*)))
 
 (c-define-type q-string "QString")
 (c-define-type q-string* (pointer q-string))
