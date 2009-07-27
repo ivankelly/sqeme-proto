@@ -1,11 +1,17 @@
+#include <stdlib.h>
 #include "qt-proxy.h"
 
-SlotProxy::SlotProxy(SlotProxy::function target) : QObject() {
-  this->target = target;
+SlotProxy::SlotProxy(SlotProxy::function dispatch, char* code) : QObject() {
+  this->dispatch = dispatch;
+  this->code = code;
+}
+
+SlotProxy::~SlotProxy() {
+  free(this->code);
 }
 
 void SlotProxy::work() {
-  (*this->target)();
+  (*this->dispatch)(this->code);
 }
 
 #include "qt-proxy.moc"

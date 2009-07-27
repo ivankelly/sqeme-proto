@@ -38,18 +38,55 @@ end
 
 
 
-;; Utilities
+;; Signals and slots
 
-(define q-connect
+; FIXME This is a horrible approach, but it was quick and easy. I'll
+; put some actual time and thought into design once I have a working
+; proof of concept.
+
+(define lambda-memory '())
+
+(define lambda-counter 0)
+
+(define (lambda-memorize fn)
+  (let ((name (string-append "lambda-" (number->string lambda-counter))))
+    (set! lambda-memory (cons '(name . fn) lambda-memorize))
+    (set! lambda-counter (+ 1 lambda-counter))
+    name))
+
+(define (lambda-forget name-or-fn)
+  '())
+
+(define (lambda-recall name)
+  (define (iter lst)
+    (if (string=? (caar lambda-memory) name)
+        (cadr lambda-memory)
+        (iter name (cdr lambda-memory))))
+  (iter lambda-memory))
+
+(c-define (eval-scheme code) (nonnull-char-string) void
+          "eval_scheme" "" (eval code))
+
+(define q-connect-c
   (c-lambda (q-object* nonnull-char-string q-object* nonnull-char-string) bool
             "q_connect"))
+
+(define (q-connect sender signal receiver slot)
+  (cond ((string? slot) slot)
+         (q-connect-c sender signal receiver slot))
+        (else
+         (let* ((name (lambda-memorize slot))
+                (code (string-append "((lambda-recall " name "))"))
+                (receiver (slot-proxy-new eval-scheme code)))
+           (q-connect-c sender signal receiver "work"))))
 
 
 
 ;; SlotProxy
 
 (define slot-proxy-new
-  (c-lambda ((function () void)) slot-proxy* "SlotProxy_new"))
+  (c-lambda ((function (nonnull-char-string) void) nonnull-char-string)
+            slot-proxy* "SlotProxy_new"))
 
 
 

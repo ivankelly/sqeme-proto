@@ -1,14 +1,14 @@
 #include <QtCore/QObject>
 
-// SlotProxy
-
 class SlotProxy : public QObject {
   Q_OBJECT
 public:
-  typedef void (*function)();
-  SlotProxy(function target);
+  typedef void (*function)(char *);
+  SlotProxy(function dispatch, char* code);
+  virtual ~SlotProxy();
 public slots:
   void work();
 private:
-  function target;
+  function dispatch;
+  char* code;
 };

@@ -18,8 +18,8 @@ extern "C" {
 // SlotProxy
 
 ___INLINE
-SlotProxy* SlotProxy_new(SlotProxy::function target) {
-  return new SlotProxy(target);
+SlotProxy* SlotProxy_new(SlotProxy::function dispatch, char *code) {
+  return new SlotProxy(dispatch, code);
 }
 
 
