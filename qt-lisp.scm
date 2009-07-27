@@ -73,12 +73,11 @@ end
 
 (define (q-connect sender signal receiver slot)
   (cond ((string? slot) slot)
-         (q-connect-c sender signal receiver slot))
         (else
          (let* ((name (lambda-memorize slot))
                 (code (string-append "((lambda-recall " name "))"))
                 (receiver (slot-proxy-new eval-scheme code)))
-           (q-connect-c sender signal receiver "work"))))
+           (q-connect-c sender signal receiver "work")))))
 
 
 
