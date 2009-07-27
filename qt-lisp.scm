@@ -60,7 +60,7 @@ end
 (define (lambda-recall name)
   (define (iter lst)
     (if (string=? (caar lambda-memory) name)
-        (cadr lambda-memory)
+        (cdar lambda-memory)
         (iter name (cdr lambda-memory))))
   (iter lambda-memory))
 
