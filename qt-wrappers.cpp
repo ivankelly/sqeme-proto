@@ -26,13 +26,13 @@ SlotProxy* SlotProxy_new(SlotProxy::function target) {
 
 // Connect
 
-___INLINE
-const char *q_connect(QObject *source, const char *signal,
-                      QObject *dest, const char *slot) {
+bool q_connect(QObject *source, const char *signal,
+               QObject *dest, const char *slot) {
   // FIXME: this is horrible and will probably break between qt versions
   //        not sure what else can be done though :(
 
   char *psignal, *pslot;
+  bool result;
 
   psignal = (char *) malloc(strlen(signal) + 4);
   *psignal = '2';
@@ -44,10 +44,12 @@ const char *q_connect(QObject *source, const char *signal,
   strcpy(pslot + 1, slot);
   strcat(pslot, "()");
   
-  QObject::connect(source, psignal, dest, pslot);
+  result = QObject::connect(source, psignal, dest, pslot);
 
   free(psignal);
   free(pslot);
+
+  return result;
 }
 
 
