@@ -5,7 +5,7 @@ SlotProxy::SlotProxy(SlotProxy::function target) : QObject() {
 }
 
 void SlotProxy::work() {
-  this->work();
+  (*this->target)();
 }
 
 #include "qt-proxy.moc"

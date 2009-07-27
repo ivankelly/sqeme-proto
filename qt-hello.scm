@@ -3,7 +3,7 @@
 (define urlbar (q-line-edit-new))
 
 (c-define (load-slot) () void "load_slot" ""
-  (let ((text (q-line-edit-text)))
+  (let ((text (q-line-edit-text urlbar)))
     (if (< (q-string-index-of text (q-string-new "://") 0))
         (q-web-view-load view (q-url-new (q-string-prepend text "http://")))
         (q-web-view-load view (q-url-new text)))))

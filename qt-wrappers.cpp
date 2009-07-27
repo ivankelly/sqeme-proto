@@ -105,8 +105,8 @@ QString* QString_new(char* str) {
   return new QString(str);
 }
 
-int QString_indexOf(QString *instance, QString* str) {
-  return instance->indexOf((const QString&)str);
+int QString_indexOf(QString *instance, QString* str, int from) {
+  return instance->indexOf((const QString&)str, from);
 }
 
 QString* QString_prepend(QString* instance, const char *str) {
