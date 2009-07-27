@@ -72,7 +72,8 @@ end
             "q_connect"))
 
 (define (q-connect sender signal receiver slot)
-  (cond ((string? slot) slot)
+  (cond ((string? slot)
+	 (q-connect-c sender signal receiver slot))
         (else
          (let* ((name (lambda-memorize slot))
                 (code (string-append "((lambda-recall " name "))"))
