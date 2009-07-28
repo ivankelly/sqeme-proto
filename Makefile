@@ -1,8 +1,8 @@
 CXX := g++-4.4
 
 build:
-	moc -i qt-proxy.h >qt-proxy.moc
-	$(CXX) -g -c -I/usr/include/qt4 qt-proxy.cpp
+	moc -i qt-slot.h >qt-slot.moc
+	$(CXX) -g -c -I/usr/include/qt4 qt-slot.cpp
 	gsc -debug -link qt-lisp qt-hello
 	$(CXX) -g -c -I/usr/include/qt4 qt-lisp.c
 	$(CXX) -g -c qt-hello.c
@@ -10,4 +10,4 @@ build:
 	$(CXX) -lutil -lgambc -lQtCore -lQtGui -lQtWebKit *.o -o qt-hello
 
 clean:
-	rm -f qt-proxy.moc qt-hello.c qt-hello_.c qt-lisp.c *.o qt-hello
+	rm -f qt-slot.moc qt-hello.c qt-hello_.c qt-lisp.c *.o qt-hello

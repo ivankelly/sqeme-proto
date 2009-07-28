@@ -8,12 +8,12 @@ end
 (c-define-type q-object "QObject")
 (c-define-type q-object*
   (pointer q-object (q-object* q-widget* q-line-edit* q-tool-bar*
-                     q-main-window* q-application* slot-proxy*)))
+                     q-main-window* q-application* lambda-slot*)))
 
 (c-define-type q-widget "QWidget")
 (c-define-type q-widget*
   (pointer q-widget (q-widget* q-line-edit* q-tool-bar* q-main-window* 
-                     q-application* slot-proxy*)))
+                     q-application* lambda-slot*)))
 
 (c-define-type q-line-edit "QLineEdit")
 (c-define-type q-line-edit* (pointer q-line-edit q-line-edit*))
@@ -27,8 +27,8 @@ end
 (c-define-type q-application "QApplication")
 (c-define-type q-application* (pointer q-application q-application*))
 
-(c-define-type slot-proxy "SlotProxy")
-(c-define-type slot-proxy* (pointer slot-proxy slot-proxy*))
+(c-define-type lambda-slot "LambdaSlot")
+(c-define-type lambda-slot* (pointer lambda-slot lambda-slot*))
 
 (c-define-type q-string "QString")
 (c-define-type q-string* (pointer q-string))
@@ -40,54 +40,50 @@ end
 
 ;; Signals and slots
 
-; FIXME This is a horrible approach, but it was quick and easy. I'll
-; put some actual time and thought into design once I have a working
-; proof of concept.
+; FIXME There's probably a better approach than the following.
 
-(define lambda-memory '())
+(define slot-list '())
 
-(define lambda-counter 0)
+(define slot-counter 0)
 
-(define (lambda-memorize fn)
-  (let ((name (string-append "lambda-" (number->string lambda-counter))))
-    (set! lambda-memory (cons '(name . fn) lambda-memorize))
-    (set! lambda-counter (+ 1 lambda-counter))
+(define (slot-add fn)
+  (let ((name (string-append "slot-" (number->string slot-counter))))
+    (set! slot-list (cons (cons name fn) slot-list))
+    (set! slot-counter (+ 1 slot-counter))
     name))
 
-(define (lambda-forget name-or-fn)
+(define (slot-remove name)
   '())
 
-(define (lambda-recall name)
+(define (slot-get name)
   (define (iter lst)
-    ; FIXME Predicate is Gambit extension.
-    (if (string=? (caar lambda-memory) name) 
-        (cdar lambda-memory)
-        (iter name (cdr lst))))
-  (iter lambda-memory))
+    ; FIXME string=? is Gambit extension, according to the manual.
+    (cond ((equal? '() lst) '())
+          ((string=? (caar slot-list) name) (cdar slot-list))
+          (else (iter name (cdr lst)))))
+  (iter slot-list))
 
-(c-define (eval-scheme code) (nonnull-char-string) void
-          "eval_scheme" "" (eval code))
+(c-define (slot-call name) (nonnull-char-string) void
+          "slot_call" "" ((slot-get name)))
 
 (define q-connect-c
   (c-lambda (q-object* nonnull-char-string q-object* nonnull-char-string) bool
-            "q_connect"))
+            "q_connect_c"))
 
 (define (q-connect sender signal receiver slot)
   (cond ((string? slot)
 	 (q-connect-c sender signal receiver slot))
         (else
-         (let* ((name (lambda-memorize slot))
-                (code (string-append "((lambda-recall " name "))"))
-                (receiver (slot-proxy-new eval-scheme code)))
+         (let* ((name (slot-add slot))
+                (receiver (lambda-slot-new name)))
            (q-connect-c sender signal receiver "work")))))
 
 
 
-;; SlotProxy
+;; LambdaSlot
 
-(define slot-proxy-new
-  (c-lambda ((function (nonnull-char-string) void) nonnull-char-string)
-            slot-proxy* "SlotProxy_new"))
+(define lambda-slot-new
+  (c-lambda (nonnull-char-string) lambda-slot* "LambdaSlot_new"))
 
 
 

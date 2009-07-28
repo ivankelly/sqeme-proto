@@ -7,7 +7,7 @@
 #include <QtCore/QUrl>
 #include <QtWebKit/QWebView>
 #include <QtGui/QMainWindow>
-#include "qt-proxy.h"
+#include "qt-slot.h"
 
 #define ___INLINE inline
 
@@ -15,19 +15,19 @@
 extern "C" {
 #endif
 
-// SlotProxy
+// LambdaSlot
 
 ___INLINE
-SlotProxy* SlotProxy_new(SlotProxy::function dispatch, char *code) {
-  return new SlotProxy(dispatch, code);
+LambdaSlot* LambdaSlot_new(char *name) {
+  return new LambdaSlot(name);
 }
 
 
 
 // Connect
 
-bool q_connect(QObject *source, const char *signal,
-               QObject *dest, const char *slot) {
+bool q_connect_c(QObject *source, const char *signal,
+                 QObject *dest, const char *slot) {
   // FIXME: this is horrible and will probably break between qt versions
   //        not sure what else can be done though :(
 
