@@ -52,14 +52,19 @@ bool q_connect_c(QObject *source, const char *signal,
   return result;
 }
 
-
+#include <stdio.h>
 
 // QApplication
 
-// FIXME Research gambit's marshalling.
 ___INLINE
-QApplication* QApplication_new(int argc, char **argv) {
-  return new QApplication(argc, argv);
+QApplication* QApplication_new(int argc, char** argv) {
+  char** argv_c = (char**)malloc(argc * sizeof(char*));
+  for (int i = 0; i < argc; ++i) {
+    size_t len = strlen(argv[i]);
+    argv_c[i] = (char*)malloc(len + 1);
+    strcpy(argv_c[i], argv[i]);
+  }
+  return new QApplication(argc, argv_c);
 }
 
 ___INLINE
@@ -101,7 +106,7 @@ void QToolBar_addWidget(QToolBar* instance, QLineEdit* widget) {
 // QString
 
 ___INLINE
-QString* QString_new(char* str) {
+QString* QString_new(const char* str) {
   return new QString(str);
 }
 
@@ -109,7 +114,7 @@ int QString_indexOf(QString *instance, QString* str, int from) {
   return instance->indexOf((const QString&)str, from);
 }
 
-QString* QString_prepend(QString* instance, const char *str) {
+QString* QString_prepend(QString* instance, const char* str) {
   instance->prepend(str);
   return instance;
 }
