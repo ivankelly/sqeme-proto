@@ -58,13 +58,15 @@ bool q_connect_c(QObject *source, const char *signal,
 
 ___INLINE
 QApplication* QApplication_new(int argc, char** argv) {
-  char** argv_c = (char**)malloc(argc * sizeof(char*));
+  int* argc_c = (int*)___alloc_mem(sizeof(int));
+  *argc_c = argc;
+  char** argv_c = (char**)___alloc_mem(argc * sizeof(char*));
   for (int i = 0; i < argc; ++i) {
-    size_t len = strlen(argv[i]);
-    argv_c[i] = (char*)malloc(len + 1);
+    size_t len = strlen(argv[i]) + 1;
+    argv_c[i] = (char*)___alloc_mem(len);
     strcpy(argv_c[i], argv[i]);
   }
-  return new QApplication(argc, argv_c);
+  return new QApplication((int &)argc_c, argv_c);
 }
 
 ___INLINE

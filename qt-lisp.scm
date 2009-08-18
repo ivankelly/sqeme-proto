@@ -46,14 +46,23 @@ end
 
 (define slot-counter 0)
 
+(define (slot-find name fn)
+  (define (iter lst)
+    (cond ((equal? '() lst) '())
+          ((string=? (caar slot-list) name)
+           (if fn
+               (fn slot-list)
+               (cdar slot-list)))
+          (else (iter name (cdr lst)))))
+  (iter slot-list))
+
 (define (slot-add fn)
   (let ((name (string-append "slot-" (number->string slot-counter))))
     (set! slot-list (cons (cons name fn) slot-list))
     (set! slot-counter (+ 1 slot-counter))
     name))
 
-(define (slot-remove name)
-  '())
+(define (slot-remove name) '())
 
 (define (slot-get name)
   (define (iter lst)
