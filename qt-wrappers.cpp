@@ -66,7 +66,7 @@ QApplication* QApplication_new(int argc, char** argv) {
     argv_c[i] = (char*)___alloc_mem(len);
     strcpy(argv_c[i], argv[i]);
   }
-  return new QApplication((int &)argc_c, argv_c);
+  return new QApplication(*argc_c, argv_c);
 }
 
 ___INLINE
