@@ -3,6 +3,8 @@
 end
 )
 
+
+
 ;; Types
 
 (c-define-type q-object "QObject")
@@ -21,6 +23,9 @@ end
 (c-define-type q-tool-bar "QToolBar")
 (c-define-type q-tool-bar* (pointer q-tool-bar q-tool-bar*))
 
+(c-define-type q-web-view "QWebView")
+(c-define-type q-web-view* (pointer q-web-view))
+
 (c-define-type q-main-window "QMainWindow")
 (c-define-type q-main-window* (pointer q-main-window q-main-window*))
 
@@ -32,6 +37,9 @@ end
 
 (c-define-type q-string "QString")
 (c-define-type q-string* (pointer q-string))
+
+(c-define-type q-byte-array "QByteArray")
+(c-define-type q-byte-array* (pointer q-byte-array))
 
 (c-define-type q-url "QUrl")
 (c-define-type q-url* (pointer q-url))
@@ -59,14 +67,13 @@ end
 (define (slot-add fn)
   (let ((name (string-append "slot-" (number->string slot-counter))))
     (set! slot-list (cons (cons name fn) slot-list))
-    (set! slot-counter (+ 1 slot-counter))
+    (set! slot-counter (+ 1 slot-counter)) ; FIXME
     name))
 
 (define (slot-remove name) '())
 
 (define (slot-get name)
   (define (iter lst)
-    ; FIXME string=? is Gambit extension, according to the manual.
     (cond ((equal? '() lst) '())
           ((string=? (caar slot-list) name) (cdar slot-list))
           (else (iter name (cdr lst)))))
@@ -75,99 +82,216 @@ end
 (c-define (slot-call name) (nonnull-char-string) void
           "slot_call" "" ((slot-get name)))
 
-(define q-connect-c
-  (c-lambda (q-object* nonnull-char-string q-object* nonnull-char-string) bool
-            "q_connect_c"))
 
-(define (q-connect sender signal receiver slot)
-  (cond ((string? slot)
-	 (q-connect-c sender signal receiver slot))
-        (else
-         (let* ((name (slot-add slot))
-                (receiver (lambda-slot-new name)))
-           (q-connect-c sender signal receiver "work")))))
 
+;; CLOS stuff
+
+(define <sqeme-class> (make-class (list <object>) (list 'q-pointer)))
+
+(define (q-pointer i)
+  (slot-ref i 'q-pointer))
+
+(add-method initialize
+  (make-method (list <sqeme-class>)
+    (lambda (cnm i args)
+      (cnm)
+      (slot-set! i 'q-pointer
+                 (if (and (> (length args) 0)
+                          (eqv? <foreign> (class-of (car args))))
+                     (car args) (apply new i args))))))
 
 
 ;; LambdaSlot
 
-(define lambda-slot-new
-  (c-lambda (nonnull-char-string) lambda-slot* "LambdaSlot_new"))
+(define <lambda-slot> (make-class (list <sqeme-class>) '()))
+
+(add-method new
+  (make-method (list <lambda-slot> <string>)
+    (lambda (cnm i arg1)
+      ((c-lambda (nonnull-char-string) lambda-slot* "LambdaSlot_new") arg1))))
+
+
+
+;; QObject
+
+(define <q-object> (make-class (list <sqeme-class>) '()))
+
+(define q-object-connect
+  (c-lambda (q-object* nonnull-char-string q-object* nonnull-char-string) bool
+            "QObject_connect"))
+
+(add-method connect
+  (make-method (list <q-object> <string> <procedure>)
+    (lambda (cnm sender signal slot)
+      (let* ((name (slot-add slot))
+             (receiver (make <lambda-slot> name)))
+        (q-object-connect (q-pointer sender) signal
+                          (q-pointer receiver) "work")))))
+
+(add-method connect 
+  (make-method (list <q-object> <string> <q-object> <string>)
+    (lambda (cnm sender signal receiver slot)
+       (q-object-connect (q-pointer sender) signal (q-pointer)receiver slot))))
+
+
+
+;; QWidget
+
+(define <q-widget> (make-class (list <q-object>) '()))
 
 
 
 ;; QApplication
 
-(define q-application-new
-  (c-lambda (int nonnull-char-string-list) q-application* "QApplication_new"))
+(define <q-core-application> (make-class (list <q-object>) '()))
+(define <q-application> (make-class (list <q-core-application>) '()))
 
-(define q-application-exec
-  (c-lambda (q-application*) int "QApplication_exec"))
+(add-method new
+  (make-method (list <q-application> <integer> <list>)
+    (lambda (cnm i arg1 arg2)
+      ((c-lambda (int nonnull-char-string-list) q-application* "QApplication_new")
+       arg1 arg2))))
+
+(add-method exec
+  (make-method (list <q-application>)
+    (lambda (cnm i)
+      ((c-lambda (q-application*) int "QApplication_exec") (q-pointer i)))))
 
 
 
 ;; QString
 
-(define q-string-new
-  (c-lambda (char-string) q-string* "QString_new"))
+(define <q-string> (make-class (list <sqeme-class>) '()))
 
-(define q-string-index-of
-  (c-lambda (q-string* q-string* int) int "QString_indexOf"))
+(add-method new
+  (make-method (list <q-string> <string>)
+    (lambda (cnm i arg1)
+      ((c-lambda (char-string) q-string* "QString_new") arg1))))
 
-(define q-string-prepend
-  (c-lambda (q-string* nonnull-char-string) q-string* "QString_prepend"))
+(add-method index-of
+  (make-method (list <q-string> <q-string> <integer>)
+    (lambda (cnm i arg1 arg2)
+      ((c-lambda (q-string* q-string* int) int "QString_indexOf")
+       (q-pointer i) (q-pointer arg1) arg2))))
+
+(add-method prepend
+  (make-method (list <q-string> <string>)
+    (lambda (cnm i arg1)
+      (make <q-string>
+        ((c-lambda (q-string* nonnull-char-string) q-string* "QString_prepend")
+         (q-pointer i) arg1)))))
+
+(add-method to-latin1
+  (make-method (list <q-string>)
+    (lambda (cnm i)
+      (make <q-byte-array>
+        ((c-lambda (q-string*) q-byte-array  "QString_toLatin1") (q-pointer i))))))
+
+(add-method to-string
+  (make-method (list <q-string>)
+    (lambda (cnm i)
+      (data (to-latin1 i)))))
+
+
+
+;; QByteArray
+
+(define <q-byte-array> (make-class (list <sqeme-class>) '()))
+
+(add-method data
+  (make-method (list <q-byte-array>)
+    (lambda (cnm i)
+      ((c-lambda (q-byte-array*) char-string "QByteArray_data") (q-pointer i)))))
 
 
 
 ;; QUrl
 
-(define q-url-new
-  (c-lambda (q-string) q-url* "QUrl_new"))
+(define <q-url> (make-class (list <sqeme-class>) '()))
 
+(add-method new
+  (make-method (list <q-url> <q-string>)
+    (lambda (cnm i arg1)
+      ((c-lambda (q-string) q-url* "QUrl_new") (q-pointer arg1)))))
+       
 
 
 ;; QLineEdit
 
-(define q-line-edit-new
-  (c-lambda () q-line-edit* "QLineEdit_new"))
+(define <q-line-edit> (make-class (list <q-widget>) '()))
 
-(define q-line-edit-text
-  (c-lambda (q-line-edit*) q-string "QLineEdit_text"))
+(add-method new
+  (make-method (list <q-line-edit>)
+    (lambda (cnm i)
+      ((c-lambda () q-line-edit* "QLineEdit_new")))))
+
+(add-method text
+  (make-method (list <q-line-edit>)
+    (lambda (cnm i)
+      (make <q-string>
+            ((c-lambda (q-line-edit*) q-string "QLineEdit_text")
+             (q-pointer i))))))
 
 
 
 ;; QToolbar
 
-(define q-tool-bar-new
-  (c-lambda () q-tool-bar* "QToolBar_new"))
+(define <q-tool-bar> (make-class (list <q-widget>) '()))
 
-(define q-tool-bar-add-widget
-  (c-lambda (q-tool-bar* q-line-edit*) void "QToolBar_addWidget"))
+(add-method new
+  (make-method (list <q-tool-bar>)
+    (lambda (cnm i)
+      ((c-lambda () q-tool-bar* "QToolBar_new")))))
+
+(add-method add-widget
+  (make-method (list <q-tool-bar> <q-widget>)
+    (lambda (cnm i arg1)
+      ; FIXME should be (q-tool-bar* q-widget*)
+      ((c-lambda (q-tool-bar* q-line-edit*) void "QToolBar_addWidget")
+       (q-pointer i) (q-pointer arg1)))))
 
 
 
 ;; QWebView
 
-(c-define-type q-web-view "QWebView")
-(c-define-type q-web-view* (pointer q-web-view))
+(define <q-web-view> (make-class (list <q-widget>) '()))
 
-(define q-web-view-new
-  (c-lambda () q-web-view* "QWebView_new"))
+(add-method new
+  (make-method (list <q-web-view>)
+    (lambda (cnm i)
+      ((c-lambda () q-web-view* "QWebView_new")))))
 
-(define q-web-view-load
-  (c-lambda (q-web-view* q-url) void "QWebView_load"))
+(add-method load
+  (make-method (list <q-web-view> <q-url>)
+    (lambda (cnm i arg1)
+      ((c-lambda (q-web-view* q-url) void "QWebView_load")
+       (q-pointer i) (q-pointer arg1)))))
+
 
 
 ;; QMainWindow
 
-(define q-main-window-new
-  (c-lambda () q-main-window* "QMainWindow_new"))
+(define <q-main-window> (make-class (list <q-widget>) '()))
 
-(define q-main-window-set-central-widget
-  (c-lambda (q-main-window* q-web-view*) void "QMainWindow_setCentralWidget"))
+(add-method new
+  (make-method (list <q-main-window>)
+    (lambda (cnm i)
+      ((c-lambda () q-main-window* "QMainWindow_new")))))
 
-(define q-main-window-show
-  (c-lambda (q-main-window*) void "QMainWindow_show"))
+(add-method set-central-widget
+  (make-method (list <q-main-window> <q-widget>)
+    (lambda (cnm i arg1)
+      ((c-lambda (q-main-window* q-web-view*) void "QMainWindow_setCentralWidget")
+       (q-pointer i) (q-pointer arg1)))))
 
-(define q-main-window-add-tool-bar
-  (c-lambda (q-main-window* q-tool-bar*) void "QMainWindow_addToolBar"))
+(add-method show
+  (make-method (list <q-main-window>)
+    (lambda (cnm i)
+      ((c-lambda (q-main-window*) void "QMainWindow_show")
+       (q-pointer i)))))
+
+(add-method add-tool-bar
+  (make-method (list <q-main-window> <q-tool-bar>)
+    (lambda (cnm i arg1)
+      ((c-lambda (q-main-window* q-tool-bar*) void "QMainWindow_addToolBar")
+       (q-pointer i) (q-pointer arg1)))))

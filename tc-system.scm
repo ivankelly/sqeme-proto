@@ -251,6 +251,7 @@
 	    (let ((cell (assq closure instances)))
 	      (if cell (cdr cell) #f)))))
 
+
   (set! %allocate-instance-internal
 	(lambda (class lock proc nfields)
 	  (letrec ((vector (make-vector (+ nfields 3) #f))
@@ -263,7 +264,12 @@
 	    closure)))
 		   
   (set! %instance?
-        (lambda (x) (not (null? (get-vector x)))))
+        (lambda (x)
+          (let ((y (get-vector x)))
+            (not (or (null? y)
+                     (eq? #f y))))))
+        ; %instance? seems to always evaluate to #t on gambit.
+        ;(lambda (x) (not (null? (get-vector x)))))
 
   (set! %instance-class
 	(lambda (closure)
@@ -748,13 +754,14 @@
 	  (slot-set! class 'field-initializers field-initializers)
 	  (slot-set! class 'getters-n-setters getters-n-setters)))))
 
+
 (add-method initialize
     (make-method (list <generic>)
       (lambda (call-next-method generic initargs)
 	(call-next-method)
 	(slot-set! generic 'methods '())
 	(%set-instance-proc! generic
-			   (lambda args (error "Has no methods."))))))
+                             (lambda args (error "Has no methods."))))))
 
 (add-method initialize
     (make-method (list <method>)
@@ -875,7 +882,6 @@
 (define <string>      (make-primitive-class))
 (define  <input-port> (make-primitive-class))
 (define <output-port> (make-primitive-class))
-
 
 ;
 ; All done.

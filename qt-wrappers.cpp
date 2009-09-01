@@ -26,8 +26,8 @@ LambdaSlot* LambdaSlot_new(char *name) {
 
 // Connect
 
-bool q_connect_c(QObject *source, const char *signal,
-                 QObject *dest, const char *slot) {
+bool QObject_connect(QObject *source, const char *signal,
+                     QObject *dest, const char *slot) {
   // FIXME: this is horrible and will probably break between qt versions
   //        not sure what else can be done though :(
 
@@ -119,6 +119,18 @@ int QString_indexOf(QString *instance, QString* str, int from) {
 QString* QString_prepend(QString* instance, const char* str) {
   instance->prepend(str);
   return instance;
+}
+
+QByteArray QString_toLatin1(QString* instance) {
+  return instance->toLatin1();
+}
+
+
+
+// QByteArray
+
+char* QByteArray_data(QByteArray* instance) {
+  return instance->data();
 }
 
 
