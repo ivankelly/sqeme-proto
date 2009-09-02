@@ -1,5 +1,5 @@
 (c-declare #<<end
-#include "qt-wrappers.cpp"
+#include "bindings-c.h"
 end
 )
 

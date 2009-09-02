@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IFS=$'\n';
-for a in $(grep '^(add-method' qt-lisp.scm|awk '{print $2}'|sort -u); do
+for a in $(grep '^(add-method' bindings-lisp.ss|awk '{print $2}'|sort -u); do
     case $a in
         initialize)
             continue

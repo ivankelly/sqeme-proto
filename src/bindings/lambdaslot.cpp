@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "qt-slot.h"
+#include "lambdaslot.h"
 
 extern void slot_call(char* slot_name);
 //extern void slot_remove(char* slot_name);
@@ -18,4 +18,4 @@ void LambdaSlot::work() {
   slot_call(this->name);
 }
 
-#include "qt-slot.moc"
+#include "lambdaslot.moc"
