@@ -2,6 +2,7 @@ include ../../Makefile.defs
 
 CXXFLAGS := $(CXXFLAGS) -I/usr/include/qt4
 LDFLAGS  := $(LDFLAGS) -shared -lQtCore -lQtGui -lQtWebKit
+LINKFLAGS := -link -l ../tiny-clos/libtinyclos
 OBJECTS  := $(patsubst %.ss,%.o,$(wildcard *.ss)) \
             $(patsubst %.cpp,%.o,$(wildcard *.cpp)) \
             $(patsubst %.sh,%.o,$(wildcard *.sh)) \
@@ -22,8 +23,11 @@ lambdaslot.moc: lambdaslot.h
 libsqeme.o: libsqeme.c
 	$(CXX) $(CXXFLAGS) -c $<
 
-libsqeme.c: $(OBJECTS)
-	$(GSC) -link -l ../tiny-clos/libtinyclos -o $@ $(LINK_SOURCES)
+libsqeme.c: ../tiny-clos/libtinyclos.c $(OBJECTS)
+	$(GSC) $(LINKFLAGS) -o $@ $(LINK_SOURCES)
+
+../tiny-clos/libtinyclos.c:
+	$(MAKE) -C ../tiny-clos
 
 generics.o: generics.ss
 	$(GSC) $(GSCFLAGS) -c $<

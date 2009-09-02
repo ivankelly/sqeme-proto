@@ -1,6 +1,7 @@
 include ../../Makefile.defs
 
 LDFLAGS := $(LDFLAGS) -shared -lgambc
+LINKFLAGS := -link
 OBJECTS := $(patsubst %.ss,%.o,$(wildcard *.ss)) libtinyclos.o
 LINK_SOURCES := sort.c support.c tiny-clos.c primitives.c
 
@@ -13,7 +14,7 @@ libtinyclos.o: libtinyclos.c
 	$(CXX) $(CXXFLAGS) -c $<	
 
 libtinyclos.c: $(OBJECTS)
-	$(GSC) -link -o $@ $(LINK_SOURCES)
+	$(GSC) $(LINKFLAGS) -o $@ $(LINK_SOURCES)
 
 %.o: %.ss
 	$(GSC) $(GSCFLAGS) -c $<
