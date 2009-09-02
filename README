@@ -4,7 +4,9 @@ Nick's Sqeme Prototype
 * Getting started
 
 To build and run the webkit example, run 'make' at the top-level and
-run the resulting sqeme-prototype binary.
+run:
+
+LD_LIBRARY_PATH=. ./browser
 
 
 * What works
@@ -55,12 +57,17 @@ http://sqeme.sourceforge.net/cgi-bin/moin.cgi/Todo
 
 * Tree layout
 
-src/bindings  - C bindings for Qt, Lisp bindings for the C bindings.
+src/sqeme     - C bindings for Qt, Lisp bindings for the C bindings.
 src/examples  - Example Qt programs written in Scheme.
 src/tiny-clos - My modified version of tiny-clos.
 
 
 * Build system
+
+tiny-clos and sqeme are built as shared libraries at the top-level.
+The examples are built as binaries linked against them at the
+top-level. Set LD_LIBRARY_PATH to . to run the binaries from the
+top-level.
 
 The build system is implemented as recursive Makefiles. The build is
 incremental. Important make variables, like $(GSC) and $(CXXFLAGS),

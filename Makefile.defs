@@ -1,5 +1,7 @@
 CXX      := g++-4.4
-CXXFLAGS := -gdwarf-2 -O0
+CXXFLAGS := -gdwarf-2 -O0 -fPIC
+LD       := $(CXX)
+LDFLAGS  := 
 GSC      := gsc
 #GSC      := GAMBC_CC_VERBOSE=yes gsc
 GSCFLAGS := -debug
