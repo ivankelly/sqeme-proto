@@ -1,8 +1,8 @@
 include ../../../Makefile.defs
 
-LDFLAGS := $(LDFLAGS) -L../../.. -lgambc -ltinyclos -lsqeme
-LINKFLAGS := -link -l ../../sqeme/libsqeme
-OBJECTS := $(patsubst %.ss,%.o,$(wildcard *.ss)) browser_.o
+LDFLAGS   := $(LDFLAGS) -L../../.. -lgambc -ltinyclos -lsqeme
+LINKFLAGS := $(LINKFLAGS) -l ../../sqeme/libsqeme
+OBJECTS   := $(patsubst %.ss,%.o,$(wildcard *.ss)) browser_.o
 LINK_SOURCES := browser.c
 
 all: ../../../browser

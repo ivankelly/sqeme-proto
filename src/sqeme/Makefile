@@ -1,12 +1,12 @@
 include ../../Makefile.defs
 
-CXXFLAGS := $(CXXFLAGS) -I/usr/include/qt4
-LDFLAGS  := $(LDFLAGS) -shared -lQtCore -lQtGui -lQtWebKit
-LINKFLAGS := -link -l ../tiny-clos/libtinyclos
-OBJECTS  := $(patsubst %.ss,%.o,$(wildcard *.ss)) \
-            $(patsubst %.cpp,%.o,$(wildcard *.cpp)) \
-            $(patsubst %.sh,%.o,$(wildcard *.sh)) \
-            libsqeme.o
+CXXFLAGS  := $(CXXFLAGS) -I/usr/include/qt4
+LDFLAGS   := $(LDFLAGS) -shared -lQtCore -lQtGui -lQtWebKit
+LINKFLAGS := $(LINKFLAGS) -l ../tiny-clos/libtinyclos
+OBJECTS   := $(patsubst %.ss,%.o,$(wildcard *.ss)) \
+             $(patsubst %.cpp,%.o,$(wildcard *.cpp)) \
+             $(patsubst %.sh,%.o,$(wildcard *.sh)) \
+             libsqeme.o
 LINK_SOURCES := debug.c generics.c bindings-lisp.c libsqeme.c
 
 all: ../../libsqeme.so
