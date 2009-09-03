@@ -247,6 +247,8 @@ end
     (lambda (cnm i arg1 arg2 arg3)
       (q-string-index-of (q-pointer i) (q-pointer arg1) arg2 arg3))))
 
+;; FIXME These break clos. (...?)
+
 ;; (add-method index-of
 ;;   (make-method (list <q-string> <q-string> <integer>)
 ;;     (lambda (cnm i arg1 arg2)
