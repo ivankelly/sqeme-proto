@@ -234,28 +234,14 @@ end
   (make-method (list <q-string> <string>)
     (lambda (cnm i arg1) (q-string-new arg1))))
 
-; FIXME When I do this from c-lambda, I can't figure out how to cast
-;       ___arg2 from QString* to QString&. Apparently, ___arg is
-;       expanded to an expression, and the rvalue of a reference
-;       assignment can't be an expression. I tried making a QString*
-;       and assigning ___arg to it, and then casting the QString*
-;       to a QString&, which the compiler accepted, but then indexOf
-;       always returned -1. Need to look into this further, but this
-;       will get us by for now.
-(c-declare #<<end
-  ___INLINE
-  int QString_indexOf(QString* i, QString* arg1, int arg2, bool arg3) {
-    return i->indexOf(*arg1, arg2, arg3 ? Qt::CaseSensitive :
-                                          Qt::CaseInsensitive);
-  }
-end
-)
-
 (define q-string-index-of
-  ; FIXME Here we side-step having to deal with enums, but
-  ;       we do need to deal with them.
-  (c-lambda (q-string* q-string* int bool) int "QString_indexOf"))
-            
+   ; FIXME Here we side-step having to deal with enums, but
+   ;       we do need to deal with them.
+  (c-lambda (q-string* q-string* int bool) int
+            "___result = ___arg1->indexOf(*(___arg2), ___arg3,
+                                          ___arg4 ? Qt::CaseSensitive :
+                                                    Qt::CaseInsensitive);"))
+
 (add-method index-of
   (make-method (list <q-string> <q-string> <integer> <boolean>)
     (lambda (cnm i arg1 arg2 arg3)
