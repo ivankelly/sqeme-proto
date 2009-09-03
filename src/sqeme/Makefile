@@ -7,7 +7,7 @@ OBJECTS   := $(patsubst %.ss,%.o,$(wildcard *.ss)) \
              $(patsubst %.cpp,%.o,$(wildcard *.cpp)) \
              $(patsubst %.sh,%.o,$(wildcard *.sh)) \
              libsqeme.o
-LINK_SOURCES := debug.c generics.c bindings-lisp.c libsqeme.c
+LINK_SOURCES := debug.c generics.c bindings.c libsqeme.c
 
 all: ../../libsqeme.so
 
@@ -34,7 +34,7 @@ generics.o: generics.ss
 	$(CXX) $(CXXFLAGS) -c $(patsubst %.ss,%.c,$<)
 	#$(GSC) $(GSCFLAGS) -cc-options "$(CXXFLAGS)" -obj $(patsubst %.ss,%.c,$<)
 
-generics.ss: bindings-lisp.ss generics.sh
+generics.ss: bindings.ss generics.sh
 	bash generics.sh >generics.ss
 
 %.o: %.cpp

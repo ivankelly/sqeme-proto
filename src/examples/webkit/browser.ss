@@ -8,7 +8,7 @@
     (connect urlbar "returnPressed"
       (lambda ()
         (let ((txt (text urlbar)))
-          (if (< (index-of txt (make <q-string> "://") 0) 0)
+          (if (< (index-of txt (make <q-string> "://") 0 #f) 0)
               (prepend txt "http://"))
           (load view (make <q-url> txt)))))
     (add-widget toolbar urlbar)
