@@ -11,15 +11,16 @@ LD_LIBRARY_PATH=. ./browser
 
 * What works
 
- - Basic hand-written C and Lisp bindings, enough to have a working
+ - Basic hand-written bindings into C++, enough to have a working
    webkit example.
 
  - Basic support for connecting Qt slots to Scheme lambdas. Only
    no-argument slots are supported at the moment, though support for
    argument slots should be ready before too long.
 
- - tiny-clos support. All Qt classes are represented as tiny-clos
-   classes, and all Qt methods are tiny-clos generic methods.
+ - tiny-clos wrappers over the bindings into C++. All Qt classes are
+   represented as tiny-clos classes, and all Qt methods are tiny-clos
+   generic methods.
 
 
 * What needs to be done
@@ -57,9 +58,9 @@ http://sqeme.sourceforge.net/cgi-bin/moin.cgi/Todo
 
 * Tree layout
 
-src/sqeme     - C bindings for Qt, Lisp bindings for the C bindings.
+src/sqeme     - Bindings into C++ and wrappers over them for CLOS.
 src/examples  - Example Qt programs written in Scheme.
-src/tiny-clos - My modified version of tiny-clos.
+src/tiny-clos - Modified version of tiny-clos.
 
 
 * Build system
@@ -105,6 +106,10 @@ Thanks to df for many great ideas and suggestions.
 
 
 * Contact
+
+Web site: http://sqeme.sf.net
+
+Mailing list: https://sourceforge.net/mail/?group_id=270291
 
 Email me at nicktastic at gmail dot com.
 
