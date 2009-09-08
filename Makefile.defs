@@ -1,5 +1,5 @@
 CXX       := g++-4.4
-CXXFLAGS  := -gdwarf-2 -O0 -fPIC
+CXXFLAGS  := -gdwarf-2 -O0 -fPIC -Wno-write-strings
 LD        := $(CXX)
 LDFLAGS   := 
 GSC       := gsc
