@@ -7,7 +7,7 @@ OBJECTS   := $(patsubst %.ss,%.o,$(wildcard *.ss)) \
              $(patsubst %.cpp,%.o,$(wildcard *.cpp)) \
              $(patsubst %.sh,%.o,$(wildcard *.sh)) \
              libsqeme.o
-LINK_SOURCES := debug.c generics.c bindings-cxx.c bindings-ss.c libsqeme.c
+LINK_SOURCES := debug.c generics.c bindings-cxx.c bindings-ss.c
 
 all: ../../libsqeme.so
 
