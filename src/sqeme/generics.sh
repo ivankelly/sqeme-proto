@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IFS=$'\n';
-for a in $(grep '^(add-method' bindings.ss|awk '{print $2}'|sort -u); do
+for a in $(grep '^(add-method' bindings-ss.ss|awk '{print $2}'|sort -u); do
     case $a in
         initialize)
             continue
@@ -10,11 +10,12 @@ for a in $(grep '^(add-method' bindings.ss|awk '{print $2}'|sort -u); do
 
         load)
             cat <<EOF
-(let ((system-load load))
-  (set! load (make-generic))
-  (add-method load
-    (make-method (list <string>)
-      (lambda (cnm spec) (system-load spec)))))
+(cond ((not (eqv? <generic> (class-of load)))
+       (let ((system-load load))
+         (set! load (make-generic))
+         (add-method load
+           (make-method (list <string>)
+             (lambda (cnm spec) (system-load spec)))))))
 EOF
             ;;
         

@@ -7,7 +7,7 @@ OBJECTS   := $(patsubst %.ss,%.o,$(wildcard *.ss)) \
              $(patsubst %.cpp,%.o,$(wildcard *.cpp)) \
              $(patsubst %.sh,%.o,$(wildcard *.sh)) \
              libsqeme.o
-LINK_SOURCES := debug.c generics.c bindings.c libsqeme.c
+LINK_SOURCES := debug.c generics.c bindings-cxx.c bindings-ss.c
 
 all: ../../libsqeme.so
 
@@ -34,7 +34,7 @@ generics.o: generics.ss
 	$(CXX) $(CXXFLAGS) -c $(patsubst %.ss,%.c,$<)
 	#$(GSC) $(GSCFLAGS) -cc-options "$(CXXFLAGS)" -obj $(patsubst %.ss,%.c,$<)
 
-generics.ss: bindings.ss generics.sh
+generics.ss: bindings-ss.ss generics.sh
 	bash generics.sh >generics.ss
 
 %.o: %.cpp
@@ -46,4 +46,4 @@ generics.ss: bindings.ss generics.sh
 	#$(GSC) $(GSCFLAGS) -cc-options "$(CXXFLAGS)" -obj $(patsubst %.ss,%.c,$<)
 
 clean:
-	rm -f *.o *.c *.moc generics.ss console
+	rm -f *.o* *.c *.moc generics.ss console ../../libsqeme.so
