@@ -7,3 +7,5 @@ rebuild:
 clean:
 	$(MAKE) -eC src clean
 	rm -f lib*.so browser
+	rm `find . -name \*.o[0-9]*`
+
