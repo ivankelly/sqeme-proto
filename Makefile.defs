@@ -1,4 +1,4 @@
-CXX       := g++-4.4
+CXX       := g++
 CXXFLAGS  := -gdwarf-2 -O0 -fPIC -Wno-write-strings
 LD        := $(CXX)
 LDFLAGS   := 

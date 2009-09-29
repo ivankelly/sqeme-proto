@@ -6,16 +6,6 @@
 ;;
 ;;
 
-(define (CamelCase->lispy-name name . rest)
-  (let ((offset (if (null? rest) 0 (car rest))))
-    (if (= (string-length name) 0) 
-	""
-	(let ((first (string-ref name 0)))
-	  (if (char-upper-case? first)
-	      (string-append (if (< 0 offset) "-" "")
-			     (string (char-downcase first)) 
-			     (CamelCase->lispy-name (substring name 1 (string-length name)) (+ 1 offset)))
-	      (string-append (string first) (CamelCase->lispy-name (substring name 1 (string-length name)) (+ 1 offset))))))))
 
 (define (cast-method from to)
   `(define ,(string->symbol (string-append (CamelCase->lispy-name from) "->" (CamelCase->lispy-name to))) 
@@ -34,25 +24,15 @@
 			    (pointer ,name))
 	    (class-tree->c-define-types (cdr class-tree))))))
 
-; return is always a voidstar, work with it
-; for references and automatics, the return: type* tmp = new type(); *tmp = method-call(); ___result_voidstar = tmp;
-; for void: method-call()
-; for all others: ___result_voidstar = method-call
-; has to handle statics (maybe leave out at first)
-; arguments have to converted to something usable, so anything expecting a reference or by-value should be dereferenced
 
-(define (method->c-lambda class method args count)
-  (define (count-or-nothing count)
-    (if (zero? count) "" (number->string count)))
+(define (method->c-lambda method)
+
   (let* ((classname (cadr (assq 'name class)))
 	 (methodname (cadr (assq 'name method)))
 	 (methodflags (cadr (assq 'flags method)))
 	 (static? (memq 'static methodflags)))
     
-    `(define ,(cond ((memq 'ctor methodflags) (string->symbol (string-append (CamelCase->lispy-name classname) "::new" (count-or-nothing count))))
-		    ((memq 'dtor methodflags) (string->symbol (string-append (CamelCase->lispy-name classname) ".delete" (count-or-nothing count))))
-		    (else (string->symbol (string-append (CamelCase->lispy-name classname) (if static? "::" ".")
-					     (CamelCase->lispy-name methodname) (count-or-nothing count)))))
+    `(define ,(method-lispy-name method)
        (c-lambda 
 	(,@(map type->c-lambda-parameter-or-return args))
 	,(type->c-lambda-parameter-or-return (cadr (assq 'return method)))
@@ -65,7 +45,7 @@
 	     (count 0))
     (cond ((null? methods) '())
 	  ((null? args) (loop (cdr methods) (if (null? (cdr methods)) '() (cdr (assq 'args  (cadr methods)))) 0))
-	  (else (cons (method->c-lambda class (car methods) (car args) count) (loop methods (cdr args) (+ 1 count)))))))
+	  (else (cons (method->c-lambda (method-cons class (car methods) (car args) count)) (loop methods (cdr args) (+ 1 count)))))))
 
 ;(define (argument->how-it-should-be type)
 ;  )

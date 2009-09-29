@@ -21,11 +21,12 @@
       lastcomp)))
   
 (load "load-clos.ss")
-(load "src/util.ss")
 (load "src/sqeme/debug.ss")
 (load "src/sqeme/generics.ss")
 (load (maybe-compile-file "src/sqeme/bindings-cxx.ss" "-Wno-write-strings -I/usr/include/qt4 -lQtCore -lQtGui -lQtWebKit lambdaslot.o"))
 (load "src/sqeme/bindings-ss.ss")
 
-(define (load-smoke)
-  (load (maybe-compile-file "src/smoke/smoke.ss" "-Wno-write-strings -lsmokeqt")))
+(load "src/util.ss")
+(load (maybe-compile-file "src/smoke/smoke.ss" "-Wno-write-strings -lsmokeqt"))
+(load "src/smoke/misc.ss")
+(load "src/smoke/method.ss")
