@@ -1,0 +1,13 @@
+(define (class-type class)
+  (cadr (assq 'type class)))
+
+(define (class-cons smokeclass)
+  (define (find-class-type class)
+    (let loop ((methods (cadr (assq 'methods class))))
+	  (cond ((null? methods) #f)
+		((memq 'ctor (cadr (assq 'flags (car methods)))) (cadr (assq 'return (car methods))))
+		(else (loop (cdr methods))))))
+  `((name ,(cadr (assq 'name smokeclass)) 
+    (type (find-class-type smokeclass))
+    (methods ,(cadr assq 'methods smokeclass))
+    (flags ,(cadr assq 'flags smoke-class)))))
