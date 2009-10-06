@@ -30,12 +30,26 @@
       (cons (argument-cons (method-arg-name 1) (class-type method))
 	    (map-args 2 args))))
 
+(define (method-make-arg-list start)
+  (if (positive? start)
+      (let loop ((i start))
+	(if (positive? (smoke-c-get-argumentList i))
+	    (cons (make-argument (smoke-c-get-argumentList i)) 
+		  (loop (+ i 1)))
+	    '()))
+      '()))
+
 ; method type and class are different, as "type" are what arguments are expecting to represent the class
 ; while class is the over-arching construct
-(define (method-cons class basemethod args count)
-  `(class ,class)
-	  name ,(cadr (assq 'name method)) 
-	  flags ,(cadr (assq 'flags method)) args ,args count ,count))
+(define (smoke-make-method class methodid count)
+  (let ((method (smoke-c-get-method methodid)))
+    `((name ,(smoke-c-get-methodName (smoke-c-method-name method)))
+      (class ,class)
+      (flags ,(smoke-method-flags-to-symbols (smoke-c-method-flags method)))
+      (return ,(make-argument (smoke-c-method-ret method)))
+      (args ,(method-make-arg-list (smoke-c-method-args method)))
+      (count ,count))))
+
 
 (define (method-lispy-name method)
   (cond ((constructor? method) (string->symbol (string-append (CamelCase->lispy-name (class-name (method-class method))) 
@@ -62,5 +76,5 @@
 ; for all others: ___result_voidstar = method-call
 ; has to handle statics (maybe leave out at first)
 ; arguments have to converted to something usable, so anything expecting a reference or by-value should be dereferenced
-(define (method-c-impl method)
-  )
+;(define (method-c-impl method)
+;  )

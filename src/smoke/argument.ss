@@ -22,5 +22,12 @@
 (define (argument-type arg)
   (cadr (assq 'type arg)))
 
-(define (argument-cons name count arg)
-  `((name ,name) (count ,count) (type ,(cadr (assq 'type arg))) (flags ,(cadr (assq 'flags arg)))))
+(define (make-argument typeid)
+  `((name ,name) (type ,(cadr (assq 'type arg))) (flags ,(cadr (assq 'flags arg)))))
+
+(define (make-argument typeid)
+  (let ((type (smoke-c-get-type typeid)))
+    `((type ,(smoke-c-type-name type)) 
+      (classId ,(smoke-c-type-classId type)) 
+      (flags ,(smoke-type-flags-to-symbols (smoke-c-type-flags type))))))
+
