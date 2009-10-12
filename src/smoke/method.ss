@@ -8,20 +8,26 @@
 (define (destructor? method)
   (memq 'dtor (cadr (assq 'flags method))))
 
-(define (method-class method)
+(define (smoke-method-class method)
   (cadr (assq 'class method)))
 
-(define (method-name method)
+(define (smoke-method-name method)
   (cadr (assq 'name method)))
 
-(define (method-suffix method)
+(define (smoke-method-return method)
+  (cadr (assq 'return method)))
+
+(define (smoke-method-args method)
+  (cadr (assq 'args method)))
+
+(define (smoke-method-suffix method)
   (let ((count (cadr (assq 'count method))))
     (if (zero? count) "" (number->string count))))
 
-(define (method-arg-name count)
+(define (smoke-method-arg-name count)
   (argument-cons (string-append "___arg" (number->string count))))
 
-(define (method-map-args method args)
+(define (smoke-method-map-args method args)
   (define (map-args count args)
     (cons (argument-cons (method-arg-name count) (car args))
 	  (map-args (+ 1 count) (cdr args))))
@@ -30,11 +36,11 @@
       (cons (argument-cons (method-arg-name 1) (class-type method))
 	    (map-args 2 args))))
 
-(define (method-make-arg-list start)
+(define (smoke-method-make-arg-list start)
   (if (positive? start)
       (let loop ((i start))
 	(if (positive? (smoke-c-get-argumentList i))
-	    (cons (make-argument (smoke-c-get-argumentList i)) 
+	    (cons (smoke-make-argument (smoke-c-get-argumentList i)) 
 		  (loop (+ i 1)))
 	    '()))
       '()))
@@ -46,19 +52,19 @@
     `((name ,(smoke-c-get-methodName (smoke-c-method-name method)))
       (class ,class)
       (flags ,(smoke-method-flags-to-symbols (smoke-c-method-flags method)))
-      (return ,(make-argument (smoke-c-method-ret method)))
-      (args ,(method-make-arg-list (smoke-c-method-args method)))
+      (return ,(smoke-make-argument (smoke-c-method-ret method)))
+      (args ,(smoke-method-make-arg-list (smoke-c-method-args method)))
       (count ,count))))
 
 
-(define (method-lispy-name method)
-  (cond ((constructor? method) (string->symbol (string-append (CamelCase->lispy-name (class-name (method-class method))) 
-							      "::new" (method-suffix method))))
-	((destructor? method) (string->symbol (string-append (CamelCase->lispy-name (class-name (method-class method)))
-							     ".delete" (method-suffix method)))) 
-	(else (string->symbol (string-append (CamelCase->lispy-name (class-name (method-class method))) 
+(define (smoke-method-lispy-name method)
+  (cond ((constructor? method) (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name (smoke-class-by-id (smoke-method-class method)))) 
+										     "::new" (smoke-method-suffix method))))
+	 ((destructor? method) (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name (smoke-class-by-id (smoke-method-class method))))
+							     ".delete" (smoke-method-suffix method)))) 
+	(else (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name (smoke-class-by-id (smoke-method-class method)))) 
 					     (if (static? method) "::" ".")
-					     (CamelCase->lispy-name (method-name method)) (method-suffix method))))))
+					     (CamelCase->lispy-name (smoke-method-name method)) (smoke-method-suffix method))))))
 
 ;(define (method-c-impl-argument-list method)
 ;  (cond 

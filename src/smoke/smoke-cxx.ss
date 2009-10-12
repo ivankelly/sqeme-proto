@@ -26,6 +26,11 @@ c-declare-end
 	    bool
 	    "___result = !(g_smoke == NULL);"))
 
+(define smoke-c-shutdown
+  (c-lambda ()
+	    void
+	    "delete g_smoke; g_smoke = NULL;"))
+  
 (define-macro (define-smoke-get-fn type name ptr-var)
   `(define ,(string->symbol (string-append "smoke-c-get-" (symbol->string name)))
      (c-lambda (int)
@@ -38,12 +43,12 @@ c-declare-end
 	       ,type
 	       ,(string-append "___result = (" ctype ") g_smoke->" ptr-var "[___arg1];"))))
 
+
 (define-macro (define-smoke-count-fn type name count-var)
   `(define ,(string->symbol (string-append "smoke-c-" (symbol->string name) "-count"))
      (c-lambda ()
 	       int
 	       ,(string-append "___result = g_smoke->" count-var ";"))))
-
 
 (define-macro (define-smoke-accessor type name return-type ctype var)
   `(define ,(string->symbol (string-append "smoke-c-"

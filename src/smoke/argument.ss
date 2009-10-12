@@ -12,20 +12,23 @@
   (string-endswith (argument-type arg) #\*))
 
 ; give the argument in a form that can be used as c lambda return or parameterx
-(define (argument->c-lambda-declaration arg)
+(define (smoke-argument->c-lambda-declaration arg)
   #f)
 
 ; give the argument in a form that it can be used within the c implementation
-(define (argument->c-impl-usage arg)
+(define (smoke-argument->c-impl-usage arg)
   #f)
 
-(define (argument-type arg)
+(define (smoke-argument-class arg)
+  (cadr (assq 'classId arg)))
+
+(define (smoke-argument-type arg)
   (cadr (assq 'type arg)))
 
-(define (make-argument typeid)
-  `((name ,name) (type ,(cadr (assq 'type arg))) (flags ,(cadr (assq 'flags arg)))))
+;(define (make-argument typeid)
+;  `((name ,name) (type ,(cadr (assq 'type arg))) (flags ,(cadr (assq 'flags arg)))))
 
-(define (make-argument typeid)
+(define (smoke-make-argument typeid)
   (let ((type (smoke-c-get-type typeid)))
     `((type ,(smoke-c-type-name type)) 
       (classId ,(smoke-c-type-classId type)) 

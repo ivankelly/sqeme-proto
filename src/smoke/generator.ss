@@ -5,47 +5,44 @@
 ;; 4. 
 ;;
 ;;
-
+(define (smoke-c-define-types)
+  (let loop ((i (smoke-class-min-id)))
+    (cond ((> i (smoke-class-max-id)) '())
+	  (else (cons `(c-define-type ,(smoke-class->c-lambda-type (smoke-class-by-id i))
+				      (pointer ,(smoke-class-name (smoke-class-by-id i))))
+		      (loop (+ 1 i)))))))
 
 (define (smoke-cast-method from to)
   `(define ,(string->symbol (string-append (CamelCase->lispy-name (smoke-class-name from)) 
 								  "->" (CamelCase->lispy-name (smoke-class-name to))))
-     (c-lamdba (,(smoke-class->c-lambda-parameter-or-return from)) 
-	       ,(smoke-class->c-lambda-parameter-or-return to)
+     (c-lamdba (,(smoke-class->c-lambda-type from)) 
+	       ,(smoke-class->c-lambda-type to)
 	       ,(string-append "___result_voidstar = (void*)static_cast<" 
-			       (smoke-class-name from) "*>((" 
-			       (smoke-class-name to) "*)___arg1);"))))
+			       (smoke-class-name to) "*>((" 
+			       (smoke-class-name from) "*)___arg1);"))))
   
 (define (smoke-class->cast-methods class)
   (let loop ((subclasses (smoke-class-subclasses class)))
-    (trace loop)
     (if (null? subclasses) '()
 	(cons (smoke-cast-method class (smoke-class-by-id (car subclasses)))
 	      (cons 
 	       (smoke-cast-method (smoke-class-by-id (car subclasses)) class)
 	       (loop (cdr subclasses)))))))
 
-(define (class-tree->c-define-types class-tree)
-  (if (null? class-tree) '()
-      (let ((name (cadr (assq 'name (car class-tree)))))
-      (cons `(c-define-type ,(class-name->scm-symbol name)
-			    (pointer ,name))
-	    (class-tree->c-define-types (cdr class-tree))))))
 
-
-(define (method->c-lambda method)
-
-  (let* ((classname (cadr (assq 'name class)))
-	 (methodname (cadr (assq 'name method)))
-	 (methodflags (cadr (assq 'flags method)))
-	 (static? (memq 'static methodflags)))
-    
-    `(define ,(method-lispy-name method)
+(define (smoke-method->c-lambda method)
+    `(define ,(smoke-method-lispy-name method)
        (c-lambda 
-	(,@(map type->c-lambda-parameter-or-return args))
-	,(type->c-lambda-parameter-or-return (cadr (assq 'return method)))
-	;; C-code
-	))))
+	(,@(map smoke-argument->c-lambda-parameter-or-return (smoke-method-args method)))
+	,(smoke-argument->c-lambda-parameter-or-return (smoke-method-return method))
+	(smoke-method->c-lambda-source-line method)
+	)))
+
+(define (smoke-class->method-c-lambdas class)
+  (let loop ((methods (smoke-class-methods class)))
+    (cond ((null? methods) '())
+	  (else (cons (smoke-method->c-lambda (car methods))
+		      (loop (cdr methods)))))))
 
 (define (class->c-lambdas class)
   (let loop ((methods (cadr (assq 'methods class)))
@@ -62,32 +59,50 @@
 ;; convert a type list into something c-lambda can use
 ;;
 
-(define (smoke-class->c-lambda-parameter-or-return class)
+(define (smoke-class->c-lambda-type class)
   (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name class)) "*")))
 
 (define (smoke-argument->c-lambda-parameter-or-return argument)
   (let* ((argclass (smoke-argument-class argument)))
-    (if (> argclass 0)
-	(smoke-class->c-lambda-parameter-or-return (smoke-class-by-id argclass))
-	(let ((name (smoke-remove-decoration (argument-type argument))))
-	  (cond ((or (string=? name "bool")) 'bool)
-		((or (string=? name "char*")) 'char-string)
-		((or (string=? name "int")
-		     (string=? name "uint")
-		     (string-find name #\:)) 'int)
-		((or (string=? name "void**")) 'void**)
-		((or (string=? name "void")) 'void)
-		(else (error (string-append "Should be handled by one or tother [" name "]" ))))))))
+    (cond ((> argclass 0) (smoke-class->c-lambda-type (smoke-class-by-id argclass)))
+	  ((eq? #f (smoke-argument-type argument)) 'void)
+	  (else (let ((name (smoke-remove-decoration (smoke-argument-type argument))))
+		  (cond ((or (string=? name "bool")) 'bool)
+			((or (string=? name "char*")) 'char-string)
+			((or (string=? name "int")
+			     (string=? name "uint")
+			     (string-find name #\:)) 'int)
+			((or (string=? name "void**")) 'void**)
+			((or (string=? name "void")) 'void)
+			((or (string=? name "QString*")
+			     (string=? name "QString&")
+			     (string=? name "QString")) 'q-string*)
+			((or (string=? name "QThread*")
+			     (string=? name "QThread&")
+			     (string=? name "QThread")) 'q-thread*)
+			((or (string=? name "QList<QObject*>*")
+			     (string=? name "QList<QObject*>&")
+			     (string=? name "QList<QObject*>")) 'q-list<qobject>*)
+			((or (string=? name "QList<QByteArray>*")
+			     (string=? name "QList<QByteArray>&")
+			     (string=? name "QList<QByteArray>")) 'q-list<QByteArray>*)
+			(else (error (string-append "Should be handled by one or tother [" name "]" )))))))))
 
-(define (method->c-lambda-C-source class method)
-  (let* ((returntype (cadr (assq 'return method)))
-	 (returnnameval (cadr (assq 'type returntype)))
-	 (returnname (if returnnameval (remove-decoration returnnameval) "void"))
-	 (qt-type? (string-startswith returnname #\Q))
-	 (qt-ref-or-auto? (and qt-type? (or (string-endswith returnname #\&)
-					    (not (string-endswith returnname #\*))))))
-	 
-    
-    (cond 
-;     (string-startswith name #\
-     (else (error (string-append "Should be handled by one or tother [" name "]" ))))))
+(define (smoke-method->c-method-call method)
+  "<method-call>")
+
+; if return is already pointer, just assign to void
+; if return is reference, return &() 
+; if return is automatic, alloc, assign and return &()
+(define (smoke-method->c-lambda-source-line method)
+  (let ((return-arg (smoke-method-return method)))
+    (cond ((pointer? return-arg)
+	   (string-append "__result_voidstar = " (smoke-method->c-method-call method)))
+	  ((reference? return-arg)
+	   (string-append "__result_voidstar = &(" (smoke-method->c-method-call method) ");"))
+	  ((automatic? return-arg)
+	   (string-append "X *ret = new X(); *ret = " (smoke-method->c-method-call method) 
+			  "; __result_voidstar = ret;"))
+	  (else "ERROR! something wrong here."))))
+
+	

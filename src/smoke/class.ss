@@ -17,6 +17,9 @@
 (define (smoke-class-id class)
   (cadr (assq 'id class)))
 
+(define (smoke-class-methods class)
+  (cadr (assq 'methods class)))
+
 (define (smoke-class-make-inheritance-list start)
   (if (positive? start)
       (let loop ((i start))
@@ -26,6 +29,7 @@
 	    '()))
       '()))
 
+; something wrong in this function, should be adding disambiguator but isn't so just adding id now
 (define (smoke-class-make-method-list index)
   (let ((maxindex (smoke-c-methodmap-count)))
     (let add-method ((i 0))
@@ -36,10 +40,10 @@
 		(if (positive? methodid)
 		    (cons (smoke-make-method index methodid i) (add-method (+ i 1)))
 		    (let add-ambig-method ((j (abs methodid))
-					   (i 0))
+					   (disambiguator 0))
 		      (if (positive? (smoke-c-get-ambiguousMethodList j))
-			  (cons (smoke-make-method index (smoke-c-get-ambiguousMethodList j) i) 
-				(add-ambig-method (+ j 1) (+ i 1)))
+			  (cons (smoke-make-method index (smoke-c-get-ambiguousMethodList j) disambiguator) 
+				(add-ambig-method (+ j 1) (+ disambiguator 1)))
 			  '())))
 		(add-method (+ i 1))))
 	  '()))))
