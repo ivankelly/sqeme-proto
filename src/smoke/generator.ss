@@ -7,15 +7,23 @@
 ;;
 
 
-(define (cast-method from to)
-  `(define ,(string->symbol (string-append (CamelCase->lispy-name from) "->" (CamelCase->lispy-name to))) 
-     (c-lamdba (,(type->c-lambda-parameter-or-return from)) (type->c-lambda-parameter-or-return to)
-	       ,(string-append "___result_voidstar = (void*)static_cast<" from "*>((" to "*)___arg1);"))))
+(define (smoke-cast-method from to)
+  `(define ,(string->symbol (string-append (CamelCase->lispy-name (smoke-class-name from)) 
+								  "->" (CamelCase->lispy-name (smoke-class-name to))))
+     (c-lamdba (,(smoke-class->c-lambda-parameter-or-return from)) 
+	       ,(smoke-class->c-lambda-parameter-or-return to)
+	       ,(string-append "___result_voidstar = (void*)static_cast<" 
+			       (smoke-class-name from) "*>((" 
+			       (smoke-class-name to) "*)___arg1);"))))
   
-(define (class->cast-methods class-tree classname)
-  (let loop ((subclasses (subclasses class-tree classname)))
+(define (smoke-class->cast-methods class)
+  (let loop ((subclasses (smoke-class-subclasses class)))
+    (trace loop)
     (if (null? subclasses) '()
-	(cons (cast-method classname (car subclasses)) (loop (cdr subclasses))))))
+	(cons (smoke-cast-method class (smoke-class-by-id (car subclasses)))
+	      (cons 
+	       (smoke-cast-method (smoke-class-by-id (car subclasses)) class)
+	       (loop (cdr subclasses)))))))
 
 (define (class-tree->c-define-types class-tree)
   (if (null? class-tree) '()
@@ -53,25 +61,23 @@
 ;;
 ;; convert a type list into something c-lambda can use
 ;;
-(define (remove-decoration name) 
-    (let ((last-space (string-find-last name #\ )))
-      (substring name (if last-space (+ last-space 1) 0) (string-length name))))
-  
-(define (type->c-lambda-parameter-or-return type)
-  (let* ((nameval (if (string? type) type (cadr (assq 'type type))))
-	 (name (if nameval (remove-decoration nameval) "void")))
-    (cond ((or (string=? name "bool")) 'bool)
-	  ((or (string=? name "char*")) 'char-string)
-	  ((or (string=? name "int")
-	       (string=? name "uint")
-	       (string-find name #\:)) 'int)
-	  ((or (string=? name "void**")) 'void**)
-	  ((or (string=? name "void")) 'void)
-	  ((string-startswith name #\Q) (cond ((string-endswith name #\*) (string->symbol (CamelCase->lispy-name name)))
-					      ((string-endswith name #\&) (string->symbol (CamelCase->lispy-name (string-replace-char name #\& #\*))))
-					      (else (string->symbol (string-append (CamelCase->lispy-name name) "*")))))
-	  (else (error (string-append "Should be handled by one or tother [" name "]" ))))))
 
+(define (smoke-class->c-lambda-parameter-or-return class)
+  (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name class)) "*")))
+
+(define (smoke-argument->c-lambda-parameter-or-return argument)
+  (let* ((argclass (smoke-argument-class argument)))
+    (if (> argclass 0)
+	(smoke-class->c-lambda-parameter-or-return (smoke-class-by-id argclass))
+	(let ((name (smoke-remove-decoration (argument-type argument))))
+	  (cond ((or (string=? name "bool")) 'bool)
+		((or (string=? name "char*")) 'char-string)
+		((or (string=? name "int")
+		     (string=? name "uint")
+		     (string-find name #\:)) 'int)
+		((or (string=? name "void**")) 'void**)
+		((or (string=? name "void")) 'void)
+		(else (error (string-append "Should be handled by one or tother [" name "]" ))))))))
 
 (define (method->c-lambda-C-source class method)
   (let* ((returntype (cadr (assq 'return method)))

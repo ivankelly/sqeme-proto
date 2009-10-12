@@ -30,4 +30,3 @@
     `((type ,(smoke-c-type-name type)) 
       (classId ,(smoke-c-type-classId type)) 
       (flags ,(smoke-type-flags-to-symbols (smoke-c-type-flags type))))))
-

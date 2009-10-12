@@ -8,3 +8,8 @@
 			     (string (char-downcase first)) 
 			     (CamelCase->lispy-name (substring name 1 (string-length name)) (+ 1 offset)))
 	      (string-append (string first) (CamelCase->lispy-name (substring name 1 (string-length name)) (+ 1 offset))))))))
+
+(define (smoke-remove-decoration name) 
+  (let ((last-space (string-find-last name #\ )))
+    (substring name (if last-space (+ last-space 1) 0) (string-length name))))
+  

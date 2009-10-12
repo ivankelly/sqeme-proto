@@ -5,29 +5,44 @@
 #include <smoke/qtwebkit_smoke.h>
 
 using namespace std;
+
+Smoke* g_smoke = NULL;
+
 c-declare-end
 )
 
-(c-initialize "init_qt_Smoke(); ")
+(define smoke-c-init-qt
+  (c-lambda ()
+	    void
+	    "init_qt_Smoke(); g_smoke = qt_Smoke;"))
 
+(define smoke-c-init-qtwebkit
+  (c-lambda ()
+	    void
+	    "init_qtwebkit_Smoke(); g_smoke = qtwebkit_Smoke;"))
+
+(define smoke-c-initialised?
+  (c-lambda ()
+	    bool
+	    "___result = !(g_smoke == NULL);"))
 
 (define-macro (define-smoke-get-fn type name ptr-var)
   `(define ,(string->symbol (string-append "smoke-c-get-" (symbol->string name)))
      (c-lambda (int)
 	       ,type
-	       ,(string-append "___result_voidstar = (void*)&qt_Smoke->" ptr-var "[___arg1];"))))
+	       ,(string-append "___result_voidstar = (void*)&g_smoke->" ptr-var "[___arg1];"))))
 
 (define-macro (define-smoke-simple-get-fn type name ctype ptr-var)
   `(define ,(string->symbol (string-append "smoke-c-get-" (symbol->string name)))
      (c-lambda (int)
 	       ,type
-	       ,(string-append "___result = (" ctype ") qt_Smoke->" ptr-var "[___arg1];"))))
+	       ,(string-append "___result = (" ctype ") g_smoke->" ptr-var "[___arg1];"))))
 
 (define-macro (define-smoke-count-fn type name count-var)
   `(define ,(string->symbol (string-append "smoke-c-" (symbol->string name) "-count"))
      (c-lambda ()
 	       int
-	       ,(string-append "___result = qt_Smoke->" count-var ";"))))
+	       ,(string-append "___result = g_smoke->" count-var ";"))))
 
 
 (define-macro (define-smoke-accessor type name return-type ctype var)

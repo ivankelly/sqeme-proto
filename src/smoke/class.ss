@@ -1,4 +1,4 @@
-(define smoke-class-vector (make-vector (smoke-c-class-count) '()))
+(define smoke-class-vector '#())
 
 (define (smoke-class-type class)
   (error "implement class type lookup"))
@@ -11,6 +11,12 @@
 (define (smoke-class-name class)
   (cadr (assq 'name class)))
 
+(define (smoke-class-external? class)
+  (cadr (assq 'external class)))
+
+(define (smoke-class-id class)
+  (cadr (assq 'id class)))
+
 (define (smoke-class-make-inheritance-list start)
   (if (positive? start)
       (let loop ((i start))
@@ -19,19 +25,6 @@
 		  (loop (+ i 1)))
 	    '()))
       '()))
-
-(define (smoke-add-method-to-list class methodid list)
-  (let* ((method (smoke-c-get-method methodid))
-	 (name (smoke-c-method-name method)))
-    (let add-method ((marray list)
-		     (i 0))
-      (cond ((null? marray) ; end of the array and not found
-	     )
-	    ((string?= (smoke-method-name (car marray)) (smoke-c-method-name method)) ; if method already exists in the list
-	     (let ((argscons (assq 'args (car marray))))
-	       ;(step)
-	       (set-cdr! argscons (cons (method-make-arg-list method) (cdr argscons))) list))
-	    (else (add-method (cdr marray)))))))
 
 (define (smoke-class-make-method-list index)
   (let ((maxindex (smoke-c-methodmap-count)))
@@ -45,7 +38,8 @@
 		    (let add-ambig-method ((j (abs methodid))
 					   (i 0))
 		      (if (positive? (smoke-c-get-ambiguousMethodList j))
-			  (cons (smoke-make-method index (smoke-c-get-ambiguousMethodList j) i) (add-ambig-method (+ i 1)))
+			  (cons (smoke-make-method index (smoke-c-get-ambiguousMethodList j) i) 
+				(add-ambig-method (+ j 1) (+ i 1)))
 			  '())))
 		(add-method (+ i 1))))
 	  '()))))
@@ -65,9 +59,29 @@
 ;	(else (class-by-name (cdr classtree) type))))
 
 (define (smoke-class-by-id id)
-  (let ((obj (vector-ref smoke-class-vector id)))
+  (if (not (smoke-c-initialised?))
+      (error "You must initialise smoke before using it, try (smoke-init-qt) or (smoke-init-qtwebkit)"))
+  (let* ((obj (vector-ref smoke-class-vector id)))
     (if (null? obj)
 	(let ((obj (smoke-make-class id)))
 	  (vector-set! smoke-class-vector id obj)
 	  obj)
 	obj)))
+
+(define (smoke-class-min-id) 1)
+
+(define (smoke-class-max-id) (- (vector-length smoke-class-vector) 1))
+
+(define (smoke-init family)
+  (cond ((eq? family 'qt) (smoke-c-init-qt) (set! smoke-class-vector (make-vector (+ 1 (smoke-c-class-count)) '())))
+	((eq? family 'qtwebkit) (smoke-c-init-qtwebkit) (set! smoke-class-vector (make-vector (+ 1 (smoke-c-class-count)) '())))
+	(else (error (string-append "Unsupported API " (string->symbol family))))))
+
+
+(define (smoke-class-subclasses class)
+  (let loop ((i (smoke-class-min-id))
+	     (max (smoke-class-max-id)))
+    (cond ((> i max) '())
+	  ((member (smoke-class-id class) (cadr (assq 'inherits (smoke-class-by-id i))))
+	   (cons i (loop (+ i 1) max)))
+	(else (loop (+ i 1) max)))))
