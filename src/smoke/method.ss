@@ -69,12 +69,23 @@
 ;(define (method-c-impl-argument-list method)
 ;  (cond 
 ;  (loop 
+(define (smoke-method-c-impl-arg-list method)
+  (string-append "("
+		 (let loop ((args (smoke-method-args method))
+			    (i (if (static? method) 1 2)))
+		   (cond ((null? args) "")
+			 (else (string-append "(" (smoke-argument-type (car args)) ")"
+					      (if (or (automatic? (car args))
+						      (reference? (car args))) "*" "")
+					      "___arg" (number->string i) (if (null? (cdr args)) 
+					    ")" 
+					    (string-append ", " (loop (cdr args) (+ i 1))))))))))
 
-(define (method-c-impl-method-call method)
-  (cond ((static? method) (string-append (method-class method) "::" (method-name method)
-					 (method-c-impl-argument-list method)))
-	(else (string-append "___arg1->" (method-name method) 
-			     (method-c-impl-argument-list method)))))
+(define (smoke-method-c-impl-method-call method)
+  (cond ((static? method) (string-append (smoke-class-name (smoke-class-by-id (smoke-method-class method))) "::" (smoke-method-name method)
+					 (smoke-method-c-impl-arg-list method)))
+	(else (string-append "___arg1->" (smoke-method-name method) 
+			     (smoke-method-c-impl-arg-list method)))))
 
 ; return is always a voidstar, work with it
 ; for references and automatics, the return: type* tmp = new type(); *tmp = method-call(); ___result_voidstar = tmp;

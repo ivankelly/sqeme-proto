@@ -31,12 +31,13 @@
 
 
 (define (smoke-method->c-lambda method)
+  (let ((args (map smoke-argument->c-lambda-parameter-or-return (smoke-method-args method))))
     `(define ,(smoke-method-lispy-name method)
        (c-lambda 
-	(,@(map smoke-argument->c-lambda-parameter-or-return (smoke-method-args method)))
+	(,@(if (static? method) args (cons (smoke-class->c-lambda-type (smoke-class-by-id (smoke-method-class method))) args)))
 	,(smoke-argument->c-lambda-parameter-or-return (smoke-method-return method))
-	(smoke-method->c-lambda-source-line method)
-	)))
+	,(smoke-method->c-lambda-source-line method)
+	))))
 
 (define (smoke-class->method-c-lambdas class)
   (let loop ((methods (smoke-class-methods class)))
@@ -66,14 +67,10 @@
   (let* ((argclass (smoke-argument-class argument)))
     (cond ((> argclass 0) (smoke-class->c-lambda-type (smoke-class-by-id argclass)))
 	  ((eq? #f (smoke-argument-type argument)) 'void)
-	  (else (let ((name (smoke-remove-decoration (smoke-argument-type argument))))
-		  (cond ((or (string=? name "bool")) 'bool)
-			((or (string=? name "char*")) 'char-string)
-			((or (string=? name "int")
-			     (string=? name "uint")
-			     (string-find name #\:)) 'int)
-			((or (string=? name "void**")) 'void**)
-			((or (string=? name "void")) 'void)
+	  (else (let* ((name (smoke-remove-decoration (smoke-argument-type argument)))
+		       (builtin (smoke-argument->builtin argument)))
+		  (cond (builtin builtin)
+			((or (string=? name "void**")) 'void**)		
 			((or (string=? name "QString*")
 			     (string=? name "QString&")
 			     (string=? name "QString")) 'q-string*)
@@ -88,8 +85,7 @@
 			     (string=? name "QList<QByteArray>")) 'q-list<QByteArray>*)
 			(else (error (string-append "Should be handled by one or tother [" name "]" )))))))))
 
-(define (smoke-method->c-method-call method)
-  "<method-call>")
+
 
 ; if return is already pointer, just assign to void
 ; if return is reference, return &() 
@@ -97,11 +93,11 @@
 (define (smoke-method->c-lambda-source-line method)
   (let ((return-arg (smoke-method-return method)))
     (cond ((pointer? return-arg)
-	   (string-append "__result_voidstar = " (smoke-method->c-method-call method)))
+	   (string-append "__result_voidstar = " (smoke-method-c-impl-method-call method)))
 	  ((reference? return-arg)
-	   (string-append "__result_voidstar = &(" (smoke-method->c-method-call method) ");"))
+	   (string-append "__result_voidstar = &(" (smoke-method-c-impl-method-call method) ");"))
 	  ((automatic? return-arg)
-	   (string-append "X *ret = new X(); *ret = " (smoke-method->c-method-call method) 
+	   (string-append (smoke-argument-type return-arg) " *ret = new "(smoke-argument-type return-arg) "(); *ret = " (smoke-method-c-impl-method-call method) 
 			  "; __result_voidstar = ret;"))
 	  (else "ERROR! something wrong here."))))
 

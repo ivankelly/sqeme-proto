@@ -11,6 +11,9 @@
 (define (smoke-class-name class)
   (cadr (assq 'name class)))
 
+(define (smoke-class-scm-type class)
+  (cadr (assq 'scm-type class)))
+
 (define (smoke-class-external? class)
   (cadr (assq 'external class)))
 
@@ -51,7 +54,8 @@
 (define (smoke-make-class index)
   (let ((class (smoke-c-get-class index)))
     `((id ,index) 
-      (name ,(smoke-c-class-className class)) 
+      (name ,(smoke-c-class-className class))
+      (scm-type 'foobar)
       (flags ,(smoke-class-flags-to-symbols (smoke-c-class-flags class)))
       (methods ,(smoke-class-make-method-list index))
       (inherits ,(smoke-class-make-inheritance-list (smoke-c-class-parents class)))
@@ -89,3 +93,10 @@
 	  ((member (smoke-class-id class) (cadr (assq 'inherits (smoke-class-by-id i))))
 	   (cons i (loop (+ i 1) max)))
 	(else (loop (+ i 1) max)))))
+
+(define (smoke-class-method-by-name class methodname . rest)
+  (let loop ((methods (smoke-class-methods class)))
+    (cond ((null? methods) '())
+	  ((string=? (smoke-method-name (car methods)) methodname) (car methods))
+	  (else (loop (cdr methods))))))
+
