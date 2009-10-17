@@ -67,3 +67,9 @@ c-declare-end
    (q-string)
    q-string
    "___result = ___arg1.toLower();"))
+
+(define q-string-to-latin1
+  (c-lambda
+   (q-string)
+   q-byte-array
+   "___result = ___arg1.toLatin1();"))

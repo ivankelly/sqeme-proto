@@ -1,3 +1,5 @@
+(include "types/q-string.ss")
+
 (c-declare #<<end
 #include <QtCore/QObject>
 #include <QtGui/QApplication>
@@ -46,8 +48,8 @@ end
 (c-define-type lambda-slot "LambdaSlot")
 (c-define-type lambda-slot* (pointer lambda-slot lambda-slot*))
 
-(c-define-type q-string "QString")
-(c-define-type q-string* (pointer q-string))
+;(c-define-type q-string "QString")
+;(c-define-type q-string* (pointer q-string))
 
 (c-define-type q-byte-array "QByteArray")
 (c-define-type q-byte-array* (pointer q-byte-array))
@@ -131,25 +133,25 @@ end
 
 ;; QString
 
-(define q-string-new
-  (c-lambda (char-string) q-string* 
-            "___result_voidstar = new QString(___arg1);"))
+;(define q-string-new
+;  (c-lambda (char-string) q-string
+;            "___result_voidstar = new QString(___arg1);"))
 
-(define q-string-index-of
-   ; FIXME Here we side-step having to deal with enums, but
-   ;       we do need to deal with them.
-  (c-lambda (q-string* q-string* int bool) int
-            "___result = ___arg1->indexOf(*(___arg2), ___arg3,
-                                          ___arg4 ? Qt::CaseSensitive :
-                                                    Qt::CaseInsensitive);"))
+;(define q-string-index-of
+;   ; FIXME Here we side-step having to deal with enums, but
+;   ;       we do need to deal with them.
+;  (c-lambda (q-string* q-string* int bool) int
+;            "___result = ___arg1->indexOf(*(___arg2), ___arg3,
+;                                          ___arg4 ? Qt::CaseSensitive :
+;                                                    Qt::CaseInsensitive);"))
 
-(define q-string-prepend
-  (c-lambda (q-string* nonnull-char-string) q-string*
-            ; FIXME Verify that this works like it seems.
-            "___result_voidstar = &(___arg1->prepend(___arg2));"))
+;(define q-string-prepend
+;  (c-lambda (q-string* nonnull-char-string) q-string*
+;            ; FIXME Verify that this works like it seems.
+;            "___result_voidstar = &(___arg1->prepend(___arg2));"))
 
-(define q-string-to-latin1
-  (c-lambda (q-string*) q-byte-array "___result = ___arg1->toLatin1();"))
+;(define q-string-to-latin1
+;  (c-lambda (q-string*) q-byte-array "___result = ___arg1->toLatin1();"))
 
 
 

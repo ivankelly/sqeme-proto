@@ -105,16 +105,16 @@
 
 ;; QString
 
-(define <q-string> (make-class (list <sqeme-class>) '()))
+;(define <q-string> (make-class (list <sqeme-class>) '()))
 
-(add-method new
-  (make-method (list <q-string> <string>)
-    (lambda (cnm i arg1) (q-string-new arg1))))
+;(add-method new
+;  (make-method (list <q-string> <string>)
+;    (lambda (cnm i arg1) (q-string-new arg1))))
 
-(add-method index-of
-  (make-method (list <q-string> <q-string> <integer> <boolean>)
-    (lambda (cnm i arg1 arg2 arg3)
-      (q-string-index-of (q-pointer i) (q-pointer arg1) arg2 arg3))))
+;(add-method index-of
+;  (make-method (list <q-string> <q-string> <integer> <boolean>)
+;    (lambda (cnm i arg1 arg2 arg3)
+;      (q-string-index-of (q-pointer i) (q-pointer arg1) arg2 arg3))))
 
 ;; FIXME These break clos. (...?)
 
@@ -128,22 +128,22 @@
 ;;     (lambda (cnm i arg1)
 ;;       (q-string-index-of (q-pointer i) (q-pointer arg1) 0 #t))))
 
-(add-method prepend
-  (make-method (list <q-string> <string>)
-    (lambda (cnm i arg1)
-      (make <q-string> (q-string-prepend (q-pointer i) arg1)))))
+;(add-method prepend
+;  (make-method (list <q-string> <string>)
+;    (lambda (cnm i arg1)
+;      (make <q-string> (q-string-prepend (q-pointer i) arg1)))))
 
-(add-method to-latin1
-  (make-method (list <q-string>)
-    (lambda (cnm i)
-      (make <q-byte-array> (q-string-to-latin1 (q-pointer i))))))
+;(add-method to-latin1
+;  (make-method (list <q-string>)
+;    (lambda (cnm i)
+;      (make <q-byte-array> (q-string-to-latin1 (q-pointer i))))))
 
-(define q-string-to-char-string
-  (lambda (i) (q-byte-array-data (q-string-to-latin1 i))))
+;(define q-string-to-char-string
+;  (lambda (i) (q-byte-array-data (q-string-to-latin1 i))))
 
-(add-method to-char-string
-  (make-method (list <q-string>)
-    (lambda (cnm i) (q-string-to-char-string (q-pointer i)))))
+;(add-method to-char-string
+;  (make-method (list <q-string>)
+;    (lambda (cnm i) (q-string-to-char-string (q-pointer i)))))
 
 
 
@@ -162,8 +162,8 @@
 (define <q-url> (make-class (list <sqeme-class>) '()))
 
 (add-method new
-  (make-method (list <q-url> <q-string>)
-    (lambda (cnm i arg1) (q-url-new (q-pointer arg1)))))
+  (make-method (list <q-url> <string>)
+    (lambda (cnm i arg1) (q-url-new arg1))))
 
 
 
@@ -179,7 +179,7 @@
 (add-method text
   (make-method (list <q-line-edit>)
     (lambda (cnm i)
-      (make <q-string> (q-line-edit-text (q-pointer i))))))
+      (q-line-edit-text (q-pointer i)))))
 
 
 
