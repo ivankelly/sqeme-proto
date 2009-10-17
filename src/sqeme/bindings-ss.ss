@@ -149,11 +149,11 @@
 
 ;; QByteArray
 
-(define <q-byte-array> (make-class (list <sqeme-class>) '()))
+;(define <q-byte-array> (make-class (list <sqeme-class>) '()));
 
-(add-method data
-  (make-method (list <q-byte-array>)
-    (lambda (cnm i) (q-byte-array-data (q-pointer i)))))
+;(add-method data
+;  (make-method (list <q-byte-array>)
+;    (lambda (cnm i) (q-byte-array-data (q-pointer i)))))
 
 
 

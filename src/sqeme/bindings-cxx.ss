@@ -1,3 +1,4 @@
+(include "types/q-byte-array.ss")
 (include "types/q-string.ss")
 
 (c-declare #<<end
@@ -51,8 +52,8 @@ end
 ;(c-define-type q-string "QString")
 ;(c-define-type q-string* (pointer q-string))
 
-(c-define-type q-byte-array "QByteArray")
-(c-define-type q-byte-array* (pointer q-byte-array))
+;(c-define-type q-byte-array "QByteArray")
+;(c-define-type q-byte-array* (pointer q-byte-array))
 
 (c-define-type q-url "QUrl")
 (c-define-type q-url* (pointer q-url))
@@ -157,8 +158,8 @@ end
 
 ;; QByteArray
 
-(define q-byte-array-data
-  (c-lambda (q-byte-array*) char-string "___result = ___arg1->data();"))
+;(define q-byte-array-data
+;  (c-lambda (q-byte-array*) char-string "___result = ___arg1->data();"))
 
 
 
