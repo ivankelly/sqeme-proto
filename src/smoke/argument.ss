@@ -1,7 +1,10 @@
 (define (remove-decoration name) 
     (let ((last-space (string-find-last name #\ )))
       (substring name (if last-space (+ last-space 1) 0) (string-length name))))
-  
+
+(define (void? arg)
+  (not (smoke-argument-type arg)))
+
 (define (reference? arg)
   (string-endswith (smoke-argument-type arg) #\&))
 
@@ -38,8 +41,17 @@
   (let ((name (remove-decoration (smoke-argument-type argument))))
     (cond ((or (string=? name "bool")) 'bool)
 	  ((or (string=? name "char*")) 'char-string)
+	  ((or (string=? name "char**")) 'nonnull-char-string-list)
 	  ((or (string=? name "int")
 	       (string=? name "uint")
-	       (string-find name #\:)) 'int)
+	       (string-find name #\:)
+	       (string=? name "WId")
+	       (string=? name "int&")) 'int)
+	  ((or (string=? name "qreal")
+	       (string=? name "double")) 'double)
 	  ((or (string=? name "void")) 'void)
+	  ((or (string=? name "QString&")
+	       (string=? name "QString")) 'q-string)
+	  ((or (string=? name "QByteArray&")
+	       (string=? name "QByteArray")) 'q-byte-array)
 	  (else #f))))

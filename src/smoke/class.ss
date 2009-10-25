@@ -41,13 +41,13 @@
 		 (methodid (smoke-c-methodmap-method methodmap)))
 	    (if (= (smoke-c-methodmap-classId methodmap) index)
 		(if (positive? methodid)
-		    (cons (smoke-make-method index methodid i) (add-method (+ i 1)))
+		    (cons (smoke-make-method index methodid 0) (add-method (+ i 1)))
 		    (let add-ambig-method ((j (abs methodid))
 					   (disambiguator 0))
 		      (if (positive? (smoke-c-get-ambiguousMethodList j))
 			  (cons (smoke-make-method index (smoke-c-get-ambiguousMethodList j) disambiguator) 
 				(add-ambig-method (+ j 1) (+ disambiguator 1)))
-			  '())))
+			  (add-method (+ i 1)))))
 		(add-method (+ i 1))))
 	  '()))))
 
@@ -76,6 +76,16 @@
 	  obj)
 	obj)))
 
+
+(define (smoke-class-by-name name)
+  (if (not (smoke-c-initialised?))
+      (error "You must initialise smoke before using it, try (smoke-init-qt) or (smoke-init-qtwebkit)"))
+  (let loop ((i (smoke-class-min-id))
+	     (max (smoke-class-max-id)))
+    (cond ((> i max) #f)
+	  ((string=? (smoke-class-name (smoke-class-by-id i)) name) (smoke-class-by-id i))
+	  (else (loop (+ i 1) max)))))
+
 (define (smoke-class-min-id) 1)
 
 (define (smoke-class-max-id) (- (vector-length smoke-class-vector) 1))
@@ -84,7 +94,6 @@
   (cond ((eq? family 'qt) (smoke-c-init-qt) (set! smoke-class-vector (make-vector (+ 1 (smoke-c-class-count)) '())))
 	((eq? family 'qtwebkit) (smoke-c-init-qtwebkit) (set! smoke-class-vector (make-vector (+ 1 (smoke-c-class-count)) '())))
 	(else (error (string-append "Unsupported API " (string->symbol family))))))
-
 
 (define (smoke-class-subclasses class)
   (let loop ((i (smoke-class-min-id))

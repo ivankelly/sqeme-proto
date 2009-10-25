@@ -8,6 +8,12 @@
 (define (destructor? method)
   (memq 'dtor (cadr (assq 'flags method))))
 
+(define (protected? method)
+  (memq 'protected (cadr (assq 'flags method))))
+
+(define (public? method)
+  (not (protected? method)))
+
 (define (smoke-method-class method)
   (cadr (assq 'class method)))
 
@@ -21,8 +27,9 @@
   (cadr (assq 'args method)))
 
 (define (smoke-method-suffix method)
-  (let ((count (cadr (assq 'count method))))
-    (if (zero? count) "" (number->string count))))
+  (string-append "_<" (number->string (length (smoke-method-args method))) ">"
+		 (let ((count (cadr (assq 'count method))))
+		   (if (zero? count) "" (string-append "_" (number->string count))))))
 
 (define (smoke-method-arg-name count)
   (argument-cons (string-append "___arg" (number->string count))))
@@ -31,7 +38,7 @@
   (define (map-args count args)
     (cons (argument-cons (method-arg-name count) (car args))
 	  (map-args (+ 1 count) (cdr args))))
-  (if (static? method)
+  (if (or (static? method) (constructor? method))
       (maps-args 1 args)
       (cons (argument-cons (method-arg-name 1) (class-type method))
 	    (map-args 2 args))))
@@ -72,17 +79,20 @@
 (define (smoke-method-c-impl-arg-list method)
   (string-append "("
 		 (let loop ((args (smoke-method-args method))
-			    (i (if (static? method) 1 2)))
-		   (cond ((null? args) "")
+			    (i (if (or (static? method) (constructor? method)) 1 2)))
+		   (cond ((null? args) ")")
 			 (else (string-append "(" (smoke-argument-type (car args)) ")"
-					      (if (or (automatic? (car args))
-						      (reference? (car args))) "*" "")
+					      (if (and (or (automatic? (car args))
+							   (reference? (car args))) 
+						       (not (smoke-argument->builtin (car args)))) "*" "")
 					      "___arg" (number->string i) (if (null? (cdr args)) 
 					    ")" 
 					    (string-append ", " (loop (cdr args) (+ i 1))))))))))
 
 (define (smoke-method-c-impl-method-call method)
-  (cond ((static? method) (string-append (smoke-class-name (smoke-class-by-id (smoke-method-class method))) "::" (smoke-method-name method)
+  (cond ((constructor? method) (string-append "new " (smoke-class-name (smoke-class-by-id (smoke-method-class method))) (smoke-method-c-impl-arg-list method)))
+	((destructor? method) (string-append "delete (" (smoke-class-name (smoke-class-by-id (smoke-method-class method))) "*)___arg1;"))
+        ((static? method) (string-append (smoke-class-name (smoke-class-by-id (smoke-method-class method))) "::" (smoke-method-name method)
 					 (smoke-method-c-impl-arg-list method)))
 	(else (string-append "___arg1->" (smoke-method-name method) 
 			     (smoke-method-c-impl-arg-list method)))))
