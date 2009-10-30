@@ -47,56 +47,39 @@
 (smoke-output-casts-to-file "generated/qframe-casts.ss" qframe)
 
 (print "outputting methods to file\n")
-(smoke-output-class-methods-to-file "generated/qobject-methods.ss" qobject '("destroyed#void" 
-									     "destroyed#QObject*"
-									     "static-qt-meta-object#void"
-									     "set-parent#QObject*"))
-(smoke-output-class-methods-to-file "generated/qwidget-methods.ss" qwidget '("destroyed#void" 
-									     "destroyed#QObject*"
-									     "custom-context-menu-requested#const_QPoint&" 
-									     "insert-actions#QAction*+QList<QAction*>"
-									     "add-actions#QList<QAction*>"
-									     "font-info#void" "font-metrics#void" 
-									     "static-meta-object#void"
-									     "static-qt-meta-object#void"
-									     "set-parent#QObject*"))
-(smoke-output-class-methods-to-file "generated/qapplication-methods.ss" qapplication '("commit-data-request#QSessionManager&"
-										       "focus-changed#QWidget*+QWidget*" 
-										       "font-database-changed#void"
-										       "font-metrics#void"
-										       "last-window-closed#void" 
-										       "save-state-request#QSessionManager&"
-										       "static-qt-meta-object#void"
-										       "about-to-quit#void"
-										       "unix-signal#int"
-										       "set-library-paths#const_QStringList&"
-										       "destroyed#void"
-										       "destroyed#QObject*"
-										       "arguments#void"
-										       "library-paths#void"
-										       "set-event-filter#EventFilter"
-										       "static-meta-object#void"
-										       "set-parent#QObject*"))
-(smoke-output-class-methods-to-file "generated/qlabel-methods.ss" qlabel '("destroyed#void" 
-									   "destroyed#QObject*"
-									   "static-meta-object#void" 
-									   "link-activated#const_QString&" 
-									   "link-hovered#const_QString&"
-									   "add-actions#QList<QAction*>"
-									   "custom-context-menu-requested#const_QPoint&" 
-									   "custom-context-menu-requested#const_QPoint&" 
-									   "insert-actions#QAction*+QList<QAction*>"
-									   "add-actions#QList<QAction*>"
-									   "font-info#void" "font-metrics#void" 
-									   "static-meta-object#void"
-									   "static-qt-meta-object#void"
-									   "set-parent#QObject*"))
-(smoke-output-class-methods-to-file "generated/qframe-methods.ss" qframe '("destroyed#void" 
-									   "destroyed#QObject*"
-									   "custom-context-menu-requested#const_QPoint&" 
-									   "insert-actions#QAction*+QList<QAction*>"
-									   "add-actions#QList<QAction*>"
-									   "font-info#void" "font-metrics#void" 
-									   "static-meta-object#void"
-									   "static-qt-meta-object#void"
-									   "set-parent#QObject*"))
+
+(define exclusion-list 
+  '(; QObject
+    "destroyed#void" 
+    "destroyed#QObject*"
+    "static-qt-meta-object#void"
+    "set-parent#QObject*"
+    ; QWidget
+    "custom-context-menu-requested#const_QPoint&" 
+    "insert-actions#QAction*+QList<QAction*>"
+    "add-actions#QList<QAction*>"
+    "font-info#void"
+    "font-metrics#void" 
+    "static-meta-object#void"
+    ; QApplication
+    "commit-data-request#QSessionManager&"
+    "focus-changed#QWidget*+QWidget*" 
+    "font-database-changed#void"
+    "last-window-closed#void" 
+    "save-state-request#QSessionManager&"
+    "about-to-quit#void"
+    "unix-signal#int"
+    "set-library-paths#const_QStringList&"
+    "arguments#void"
+    "library-paths#void"
+    "set-event-filter#EventFilter"
+    ; QLabel
+    "link-activated#const_QString&" 
+    "link-hovered#const_QString&"
+    ))
+
+(smoke-output-class-methods-to-file "generated/qobject-methods.ss" qobject exclusion-list)
+(smoke-output-class-methods-to-file "generated/qwidget-methods.ss" qwidget exclusion-list)
+(smoke-output-class-methods-to-file "generated/qapplication-methods.ss" qapplication exclusion-list)
+(smoke-output-class-methods-to-file "generated/qlabel-methods.ss" qlabel exclusion-list)
+(smoke-output-class-methods-to-file "generated/qframe-methods.ss" qframe exclusion-list)
