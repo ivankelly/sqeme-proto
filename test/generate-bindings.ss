@@ -47,10 +47,56 @@
 (smoke-output-casts-to-file "generated/qframe-casts.ss" qframe)
 
 (print "outputting methods to file\n")
-(smoke-output-class-methods-to-file "generated/qobject-methods.ss" qobject "destroyed" "staticQtMetaObject")
-(smoke-output-class-methods-to-file "generated/qwidget-methods.ss" qwidget 
-				    "DrawChildren" "DrawWindowBackground" "IgnoreMask" "customContextMenuRequested" "insertActions" "addActions"
-				    "fontInfo" "fontMetrics" "staticMetaObject")
-(smoke-output-class-methods-to-file "generated/qapplication-methods.ss" qapplication "CustomColor" "GuiClient" "GuiServer" "ManyColor" "NormalColor" "Tty" "commitDataRequest" "focusChanged" "fontDatabaseChanged" "fontMetrics" "lastWindowClosed" "saveStateRequest" "staticMetaObject")
-(smoke-output-class-methods-to-file "generated/qlabel-methods.ss" qlabel "staticMetaObject" "linkActivated" "linkHovered")
-(smoke-output-class-methods-to-file "generated/qframe-methods.ss" qframe "staticMetaObject" "Box" "HLine" "NoFrame" "Panel" "Plain" "Raised" "Shadow_Mask" "Shape_Mask" "StyledPanel" "Sunken" "VLine" "WinPanel")
+(smoke-output-class-methods-to-file "generated/qobject-methods.ss" qobject '("destroyed#void" 
+									     "destroyed#QObject*"
+									     "static-qt-meta-object#void"
+									     "set-parent#QObject*"))
+(smoke-output-class-methods-to-file "generated/qwidget-methods.ss" qwidget '("destroyed#void" 
+									     "destroyed#QObject*"
+									     "custom-context-menu-requested#const_QPoint&" 
+									     "insert-actions#QAction*+QList<QAction*>"
+									     "add-actions#QList<QAction*>"
+									     "font-info#void" "font-metrics#void" 
+									     "static-meta-object#void"
+									     "static-qt-meta-object#void"
+									     "set-parent#QObject*"))
+(smoke-output-class-methods-to-file "generated/qapplication-methods.ss" qapplication '("commit-data-request#QSessionManager&"
+										       "focus-changed#QWidget*+QWidget*" 
+										       "font-database-changed#void"
+										       "font-metrics#void"
+										       "last-window-closed#void" 
+										       "save-state-request#QSessionManager&"
+										       "static-qt-meta-object#void"
+										       "about-to-quit#void"
+										       "unix-signal#int"
+										       "set-library-paths#const_QStringList&"
+										       "destroyed#void"
+										       "destroyed#QObject*"
+										       "arguments#void"
+										       "library-paths#void"
+										       "set-event-filter#EventFilter"
+										       "static-meta-object#void"
+										       "set-parent#QObject*"))
+(smoke-output-class-methods-to-file "generated/qlabel-methods.ss" qlabel '("destroyed#void" 
+									   "destroyed#QObject*"
+									   "static-meta-object#void" 
+									   "link-activated#const_QString&" 
+									   "link-hovered#const_QString&"
+									   "add-actions#QList<QAction*>"
+									   "custom-context-menu-requested#const_QPoint&" 
+									   "custom-context-menu-requested#const_QPoint&" 
+									   "insert-actions#QAction*+QList<QAction*>"
+									   "add-actions#QList<QAction*>"
+									   "font-info#void" "font-metrics#void" 
+									   "static-meta-object#void"
+									   "static-qt-meta-object#void"
+									   "set-parent#QObject*"))
+(smoke-output-class-methods-to-file "generated/qframe-methods.ss" qframe '("destroyed#void" 
+									   "destroyed#QObject*"
+									   "custom-context-menu-requested#const_QPoint&" 
+									   "insert-actions#QAction*+QList<QAction*>"
+									   "add-actions#QList<QAction*>"
+									   "font-info#void" "font-metrics#void" 
+									   "static-meta-object#void"
+									   "static-qt-meta-object#void"
+									   "set-parent#QObject*"))

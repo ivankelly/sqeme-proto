@@ -17,6 +17,7 @@ end
 (c-define-type QWindowSurface* (pointer "QWindowSurface"))
 (c-define-type int* (pointer "int"))
 ;(c-define-type char** (pointer (pointer "char")))
+(c-define-type void* (pointer "void"))
 (c-define-type void** (pointer (pointer "void")))
 
 (include "../src/sqeme/types/q-byte-array.ss")

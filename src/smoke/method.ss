@@ -11,6 +11,9 @@
 (define (protected? method)
   (memq 'protected (cadr (assq 'flags method))))
 
+(define (enum? method)
+  (memq 'enum (cadr (assq 'flags method))))
+
 (define (public? method)
   (not (protected? method)))
 
@@ -26,10 +29,8 @@
 (define (smoke-method-args method)
   (cadr (assq 'args method)))
 
-(define (smoke-method-suffix method)
-  (string-append "_<" (number->string (length (smoke-method-args method))) ">"
-		 (let ((count (cadr (assq 'count method))))
-		   (if (zero? count) "" (string-append "_" (number->string count))))))
+(define (smoke-method-flags method)
+  (cadr (assq 'flags method)))
 
 (define (smoke-method-arg-name count)
   (argument-cons (string-append "___arg" (number->string count))))
@@ -63,15 +64,21 @@
       (args ,(smoke-method-make-arg-list (smoke-c-method-args method)))
       (count ,count))))
 
+(define (smoke-method-modify-class m class)
+  (if (= (smoke-method-class m) (smoke-class-id class))
+      m
+      `((name ,(smoke-method-name m))
+	(class ,(smoke-class-id class))
+	(flags ,(smoke-method-flags m))
+	(return ,(smoke-method-return m))
+	(args ,(smoke-method-args m))
+	(count 0)) ; TODO remove count, not needed
+      )
+  )
 
 (define (smoke-method-lispy-name method)
-  (cond ((constructor? method) (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name (smoke-class-by-id (smoke-method-class method)))) 
-										     "::new" (smoke-method-suffix method))))
-	 ((destructor? method) (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name (smoke-class-by-id (smoke-method-class method))))
-							     ".delete" (smoke-method-suffix method)))) 
-	(else (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name (smoke-class-by-id (smoke-method-class method)))) 
-					     (if (static? method) "::" ".")
-					     (CamelCase->lispy-name (smoke-method-name method)) (smoke-method-suffix method))))))
+  (string->symbol (string-append (CamelCase->lispy-name (smoke-class-name (smoke-class-by-id (smoke-method-class method)))) 
+				 (if (or (static? method) (constructor? method)) "::" ".") (smoke-method-mangle-name method))))
 
 ;(define (method-c-impl-argument-list method)
 ;  (cond 
@@ -105,3 +112,52 @@
 ; arguments have to converted to something usable, so anything expecting a reference or by-value should be dereferenced
 ;(define (method-c-impl method)
 ;  )
+
+(define (smoke-method-suffix method)
+  (let loop ((args (smoke-method-args method)))
+    (cond ((zero? (length args)) "void")
+	  ((= 1 (length args)) (string-replace-char (smoke-argument-type (car args)) #\  #\_))
+	  (else (string-append (string-replace-char (smoke-argument-type (car args)) #\  #\_) "+" (loop (cdr args)))))))
+
+(define (smoke-method-mangle-name method)
+  (string-append (CamelCase->lispy-name (cond ((constructor? method) "new")
+					      ((destructor? method) "delete")
+					      (else (smoke-method-name method)))) "#" (smoke-method-suffix method)))
+
+; (define foo (smoke-method-candidates-hash-table))
+; (foo 'get <method>) => the method, or #f, basically just a test to see if it's in
+; (foo 'put <method>) => add the method to the hash
+; (foo 'all) => a sorted list of all candidate methods
+(define (smoke-method-candidates-hash-table size)
+  (define (method-hash method)
+    (sdbm-hash (smoke-method-mangle-name method) size))
+  (define (method-less? a b)
+    (string<? (smoke-method-mangle-name a) (smoke-method-mangle-name b)))
+  (let ((table (make-vector size '())))
+    (lambda (op . opt)
+      (case op 
+;	((get) (vector-ref table (method-hash (car opt))))
+	((put) (let* ((index (method-hash (car opt)))
+		       (bucket (vector-ref table index)))
+		  (if (pair? bucket)
+		      (let loop ((l bucket))
+			(let ((method (car opt)))
+			  (if (null? l)
+			      (begin
+				(vector-set! table index (cons (cons (smoke-method-mangle-name method) method) bucket))
+				#t)
+			      (if (string=? (caar l) (smoke-method-mangle-name method))
+				  #f
+				  (loop (cdr l))))))
+		      (let ((method (car opt)))
+			(vector-set! table index (cons (cons (smoke-method-mangle-name method) method) '()))
+			#t))))
+	((all) (sort 
+		(let loop ((i 0))
+		  (if (> (vector-length table) i)
+		      (if (pair? (vector-ref table i))
+			  (append (map (lambda (m) (cdr m)) (vector-ref table i)) (loop (+ i 1)))
+			  (loop (+ i 1)))
+		      '()))
+		method-less?))))))
+
